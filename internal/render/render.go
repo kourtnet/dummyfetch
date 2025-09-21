@@ -7,8 +7,8 @@ import (
 	"github.com/kourtnet/dummyfetch/internal/entities"
 )
 
-func Render(logo entities.LogoInfo, arguments []entities.Arg) {
-	maxLen := max(len(logo.Logo), len(arguments))
+func Render(logo entities.LogoInfo, args []entities.Arg) {
+	maxLen := max(len(logo.Logo), len(args))
 
 	for i := range maxLen {
 		if i < len(logo.Logo) {
@@ -17,9 +17,9 @@ func Render(logo entities.LogoInfo, arguments []entities.Arg) {
 			fmt.Print(logo.BlankRow)
 		}
 
-		if i < len(arguments) {
-			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, arguments[i].Name)
-			fmt.Printf(": %s", arguments[i].Contents)
+		if i < len(args) {
+			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, args[i].Name)
+			fmt.Printf(": %s", args[i].Contents)
 		} else {
 			fmt.Printf("\n")
 		}

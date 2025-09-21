@@ -18,61 +18,17 @@ func runCmd(command string) (string, error) {
 	return string(res), nil
 }
 
-func Fetch() ([]entities.Arg, error) {
-	commands := []struct {
-		name    string
-		command string
-	}{
-		{
-			name:    `OS`,
-			command: `grep '^PRETTY_NAME=' /etc/os-release | cut -d= -f2 | tr -d '"'`,
-		},
-		{
-			name:    `Kernel`,
-			command: `uname -r`,
-		},
-		{
-			name:    `Shell`,
-			command: `basename $SHELL`,
-		},
-		{
-			name:    `Terminal`,
-			command: `echo $TERM`,
-		},
-		{
-			name: `Uptime`,
-			command: `awk '
-				function plural(n, singular, plural_form) {
-  			return (n == 1) ? singular : plural_form
-				}
-				{
-  				s=int($1);
-  				d=int(s/86400);
-  				h=int((s%86400)/3600);
-  				m=int((s%3600)/60);
-  				str = ""
-  				if(d > 0) str = str d " " plural(d, "day", "days") ", "
-  				if(h > 0) str = str h " " plural(h, "hour", "hours") ", "
-  				if(m > 0) str = str m " " plural(m, "minute", "minutes") ", "
-  				sub(/, $/, "", str)
-  				print str
-				}' /proc/uptime`,
-		},
-	}
-
-	res := make([]entities.Arg, len(commands))
-
-	for i := range commands {
-		output, err := runCmd(commands[i].command)
+func Fetch(args []entities.Arg) ([]entities.Arg, error) {
+	for i := range args {
+		output, err := runCmd(args[i].Command)
 		if err != nil {
 			return nil, err
 		}
 
-		res[i].Name = commands[i].name
-		res[i].Contents = output
+		args[i].Contents = output
 	}
 
-	return res, nil
+	return args, nil
 }
 
 func ResolveIcon() (entities.LogoInfo, error) {
