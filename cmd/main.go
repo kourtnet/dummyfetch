@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/kourtnet/dummyfetch/internal/logos"
 	"github.com/kourtnet/dummyfetch/internal/render"
 	"github.com/kourtnet/dummyfetch/internal/sysinfo"
 )
@@ -12,5 +11,10 @@ func main() {
 		panic(err)
 	}
 
-	render.Render(logos.ArchTiny, stats)
+	logo, err := sysinfo.ResolveIcon()
+	if err != nil {
+		panic(err)
+	}
+
+	render.Render(logo, stats)
 }
