@@ -34,7 +34,7 @@ func Fetch() ([]args.Arg, error) {
 		},
 		{
 			name:    `Shell`,
-			command: `cat /proc/$$/comm`,
+			command: `basename $SHELL`,
 		},
 		{
 			name:    `Terminal`,
