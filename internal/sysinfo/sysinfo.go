@@ -76,11 +76,11 @@ func Fetch() ([]args.Arg, error) {
 	return res, nil
 }
 
-func ResolveIcon() ([]string, error) {
+func ResolveIcon() (logos.LogoInfo, error) {
 	distro, err := runCmd(`grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"'`)
 	if err != nil {
-		return nil, err
+		return logos.LogoInfo{}, err
 	}
 
-	return logos.Get(distro), nil
+	return logos.GetLogo(distro), nil
 }
