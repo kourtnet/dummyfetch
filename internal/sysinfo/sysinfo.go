@@ -24,8 +24,20 @@ func Fetch() ([]args.Arg, error) {
 		command string
 	}{
 		{
+			name:    `OS`,
+			command: `grep '^PRETTY_NAME=' /etc/os-release | cut -d= -f2 | tr -d '"'`,
+		},
+		{
 			name:    `Kernel`,
 			command: `uname -r`,
+		},
+		{
+			name:    `Shell`,
+			command: `basename $SHELL`,
+		},
+		{
+			name:    `Terminal`,
+			command: `echo $TERM`,
 		},
 		{
 			name:    `Uptime`,
