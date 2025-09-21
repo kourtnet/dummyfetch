@@ -4,8 +4,7 @@ package sysinfo
 import (
 	"os/exec"
 
-	"github.com/kourtnet/dummyfetch/internal/args"
-	"github.com/kourtnet/dummyfetch/internal/logos"
+	"github.com/kourtnet/dummyfetch/internal/entities"
 )
 
 func runCmd(command string) (string, error) {
@@ -19,7 +18,7 @@ func runCmd(command string) (string, error) {
 	return string(res), nil
 }
 
-func Fetch() ([]args.Arg, error) {
+func Fetch() ([]entities.Arg, error) {
 	commands := []struct {
 		name    string
 		command string
@@ -61,7 +60,7 @@ func Fetch() ([]args.Arg, error) {
 		},
 	}
 
-	res := make([]args.Arg, len(commands))
+	res := make([]entities.Arg, len(commands))
 
 	for i := range commands {
 		output, err := runCmd(commands[i].command)
@@ -76,11 +75,11 @@ func Fetch() ([]args.Arg, error) {
 	return res, nil
 }
 
-func ResolveIcon() (logos.LogoInfo, error) {
+func ResolveIcon() (entities.LogoInfo, error) {
 	distro, err := runCmd(`grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"'`)
 	if err != nil {
-		return logos.LogoInfo{}, err
+		return entities.LogoInfo{}, err
 	}
 
-	return logos.GetLogo(distro), nil
+	return entities.GetLogo(distro), nil
 }

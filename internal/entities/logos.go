@@ -1,28 +1,27 @@
-// Package logos provides ASCII OS logos of different sizes
-// At the moment we have: Arch
-package logos
+package entities
 
 import "strings"
 
 type LogoInfo struct {
-	Color int
-	Logo  []string
+	TextColor int
+	Logo      []string
+	BlankRow  string
 }
 
 var logosMap = map[string]LogoInfo{
 	"arch": {
-		Color: 34,
+		TextColor: 34,
 		Logo: []string{
-			"   \033[34m/\\\033[0m\t",
-			"  \033[34m/\\ \\\033[0m\t",
-			" \033[34m/ .\\ \\\033[0m\t",
-			"\033[34m/.'  '.\\\033[0m",
-			"\t",
+			"   \033[34m/\\\033[0m\t\t",
+			"  \033[34m/\\ \\\033[0m\t\t",
+			" \033[34m/ .\\ \\\033[0m\t\t",
+			"\033[34m/.'  '.\\\033[0m\t",
 		},
+		BlankRow: "\t\t",
 	},
 
 	"ubuntu": {
-		Color: 31,
+		TextColor: 31,
 		Logo: []string{
 			"  \033[33m/\033[31m-'-( )\033[0m",
 			"\033[31m( )    \033[31m|\033[0m",
@@ -30,10 +29,11 @@ var logosMap = map[string]LogoInfo{
 			"   \033[31m-.-\033[33m( )\033[0m",
 			"\t",
 		},
+		BlankRow: "\t",
 	},
 
 	"linux": {
-		Color: 37,
+		TextColor: 37,
 		Logo: []string{
 			"  \033[37m.-,\033[0m\t",
 			"  \033[37moo\033[37m|\033[0m\t",
@@ -41,13 +41,8 @@ var logosMap = map[string]LogoInfo{
 			"\033[33m(\\\033[37m_^\033[33m/)\033[0m\t",
 			"\t",
 		},
+		BlankRow: "\t",
 	},
-}
-
-var colorsMap = map[string]int{
-	"arch":   34,
-	"ubuntu": 31,
-	"linux":  37,
 }
 
 const baseLogo = "linux"

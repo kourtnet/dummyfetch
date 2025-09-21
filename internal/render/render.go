@@ -4,27 +4,32 @@ package render
 import (
 	"fmt"
 
-	"github.com/kourtnet/dummyfetch/internal/args"
-	"github.com/kourtnet/dummyfetch/internal/logos"
+	"github.com/kourtnet/dummyfetch/internal/entities"
 )
 
-func Render(logo logos.LogoInfo, arguments []args.Arg) {
+func Render(logo entities.LogoInfo, arguments []entities.Arg) {
 	maxLen := max(len(logo.Logo), len(arguments))
 
 	for i := range maxLen {
 		if i < len(logo.Logo) {
 			fmt.Print(logo.Logo[i])
 		} else {
-			fmt.Print(logo.Logo[len(logo.Logo)-1])
+			fmt.Print(logo.BlankRow)
 		}
 
-		fmt.Print("\t")
-
 		if i < len(arguments) {
-			fmt.Printf("\033[%dm%s\033[0m", logo.Color, arguments[i].Name)
+			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, arguments[i].Name)
 			fmt.Printf(": %s", arguments[i].Contents)
 		} else {
 			fmt.Printf("\n")
 		}
+
+	}
+
+	fmt.Println()
+
+	for _, v := range entities.Palette {
+		fmt.Print(logo.BlankRow)
+		fmt.Printf("%s\n", v)
 	}
 }
