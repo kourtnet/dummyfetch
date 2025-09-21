@@ -47,12 +47,17 @@ var logosMap = map[string]LogoInfo{
 
 const baseLogo = "linux"
 
-func GetLogo(name string) LogoInfo {
-	nameF := strings.ToLower(strings.TrimSpace(name))
-
-	if logo, ok := logosMap[nameF]; ok {
-		return logo
+func GetLogo() (LogoInfo, error) {
+	distro, err := runCmd(`grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"'`)
+	if err != nil {
+		return LogoInfo{}, err
 	}
 
-	return logosMap[baseLogo]
+	distro = strings.ToLower(strings.TrimSpace(distro))
+
+	if logo, ok := logosMap[distro]; ok {
+		return logo, nil
+	}
+
+	return logosMap[baseLogo], nil
 }

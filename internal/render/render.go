@@ -25,11 +25,4 @@ func Render(logo entities.LogoInfo, args []entities.Arg) {
 		}
 
 	}
-
-	fmt.Println()
-
-	for _, v := range entities.Palette {
-		fmt.Print(logo.BlankRow)
-		fmt.Printf("%s\n", v)
-	}
 }

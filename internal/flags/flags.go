@@ -18,6 +18,8 @@ var defaultArgs = []string{
 	"kernel",
 	"shell",
 	"uptime",
+	"palette_bg",
+	"palette_fg",
 }
 
 func Parse() (Config, error) {
