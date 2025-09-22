@@ -1,6 +1,12 @@
 // Package entities provides entities used in the project: system info arguments and OS logos
 package entities
 
+import (
+	"bufio"
+	"os"
+	"strings"
+)
+
 type Arg struct {
 	Name     string
 	Command  func() (string, error)
@@ -11,12 +17,31 @@ var ArgsList = map[string]Arg{
 	"os": {
 		Name: `OS`,
 		Command: func() (string, error) {
-			output, err := runCmd(`grep '^PRETTY_NAME=' /etc/os-release | cut -d= -f2 | tr -d '"'`)
+			file, err := os.Open("/etc/os-release")
 			if err != nil {
+				panic(err)
+			}
+
+			defer file.Close()
+
+			scanner := bufio.NewScanner(file)
+			var res string
+
+			for scanner.Scan() {
+				text := scanner.Text()
+				if strings.HasPrefix(text, "PRETTY_NAME=") {
+					suffix := text[len("PRETTY_NAME="):]
+					res = strings.Trim(suffix, `"`) + "\n"
+
+					break
+				}
+			}
+
+			if err := scanner.Err(); err != nil {
 				return "", err
 			}
 
-			return output, nil
+			return res, nil
 		},
 	},
 
