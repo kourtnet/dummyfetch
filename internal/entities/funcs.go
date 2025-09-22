@@ -9,7 +9,15 @@ import (
 	"time"
 )
 
-func getOS() (string, error) {
+func GetDistro() (string, error) {
+	return getOSReleaseInfo("ID=")
+}
+
+func getPrettyDistro() (string, error) {
+	return getOSReleaseInfo("PRETTY_NAME=")
+}
+
+func getOSReleaseInfo(prefix string) (string, error) {
 	file, err := os.Open("/etc/os-release")
 	if err != nil {
 		panic(err)
@@ -22,8 +30,8 @@ func getOS() (string, error) {
 
 	for scanner.Scan() {
 		text := scanner.Text()
-		if strings.HasPrefix(text, "PRETTY_NAME=") {
-			suffix := text[len("PRETTY_NAME="):]
+		if strings.HasPrefix(text, prefix) {
+			suffix := text[len(prefix):]
 			res = strings.Trim(suffix, `"`)
 
 			break

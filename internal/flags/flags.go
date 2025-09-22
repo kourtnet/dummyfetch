@@ -4,49 +4,67 @@ package flags
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/kourtnet/dummyfetch/internal/entities"
 )
 
 type Config struct {
-	ArgsOrder []entities.Arg
-	LogoName  string
+	ArgsOrder []string
+	Logo      string
 }
 
-var defaultArgs = []entities.Arg{
-	entities.ArgsList["os"],
-	entities.ArgsList["kernel"],
-	entities.ArgsList["shell"],
-	entities.ArgsList["uptime"],
+func (c *Config) appendArg(flag string) bool {
+	if arg, ok := argsMap[flag]; ok {
+		c.ArgsOrder = append(c.ArgsOrder, arg)
+		return true
+	}
+
+	return false
+}
+
+func (c *Config) setLogo(flag string) bool {
+	if logo, ok := logosMap[flag]; ok {
+		c.Logo = logo
+		return true
+	}
+
+	return false
+}
+
+var argsMap = map[string]string{
+	"--os":         entities.OSName,
+	"--kernel":     entities.KernelName,
+	"--shell":      entities.ShellName,
+	"--term":       entities.TerminalName,
+	"--uptime":     entities.UptimeName,
+	"--palette_bg": entities.PaletteBgName,
+	"--palette_fg": entities.PaletteFgName,
+	"--indent":     entities.IndentName,
+	"--sep":        entities.SeparatorName,
+}
+
+var logosMap = map[string]string{
+	"--arch":   entities.ArchName,
+	"--ubuntu": entities.UbuntuName,
+	"--tux":    entities.TuxName,
 }
 
 func Parse() (Config, error) {
 	cfg := Config{
-		ArgsOrder: []entities.Arg{},
+		ArgsOrder: []string{},
 	}
 
-	args := os.Args[1:]
-	for _, v := range args {
-		vF := strings.TrimLeft(v, "-")
-
-		_, ok := entities.LogosMap[vF]
-		if ok {
-			cfg.LogoName = vF
+	flags := os.Args[1:]
+	for _, flag := range flags {
+		if ok := cfg.appendArg(flag); ok {
 			continue
 		}
 
-		arg, ok := entities.ArgsList[vF]
-		if ok {
-			cfg.ArgsOrder = append(cfg.ArgsOrder, arg)
+		if ok := cfg.setLogo(flag); ok {
 			continue
 		}
 
-		return Config{}, fmt.Errorf("unknow flag: %s", v)
-	}
-
-	if len(cfg.ArgsOrder) == 0 {
-		cfg.ArgsOrder = defaultArgs
+		return Config{}, fmt.Errorf("unknown flag: %s", flag)
 	}
 
 	return cfg, nil

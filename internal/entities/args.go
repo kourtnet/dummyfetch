@@ -7,45 +7,64 @@ type Arg struct {
 	Contents string
 }
 
-var ArgsList = map[string]Arg{
-	"os": {
+const (
+	OSName        = "os"
+	KernelName    = "kernel"
+	ShellName     = "shell"
+	TerminalName  = "terminal"
+	UptimeName    = "uptime"
+	PaletteBgName = "palette_bg"
+	PaletteFgName = "palette_fg"
+	IndentName    = "indent"
+	SeparatorName = "separator"
+)
+
+var ArgsMap = map[string]Arg{
+	OSName: {
 		Name:    "OS",
-		Command: getOS,
+		Command: getPrettyDistro,
 	},
 
-	"kernel": {
+	KernelName: {
 		Name:    "Kernel",
 		Command: getKernel,
 	},
 
-	"shell": {
+	ShellName: {
 		Name:    "Shell",
 		Command: getShell,
 	},
 
-	"terminal": {
+	TerminalName: {
 		Name:    "Terminal",
 		Command: getTerminal,
 	},
 
-	"uptime": {
+	UptimeName: {
 		Name:    "Uptime",
 		Command: getUptime,
 	},
 
-	"palette_bg": {
+	PaletteBgName: {
 		Command: getPaletteBg,
 	},
 
-	"palette_fg": {
+	PaletteFgName: {
 		Command: getPaletteFg,
 	},
 
-	"indent": {
+	IndentName: {
 		Command: getIndent,
 	},
 
-	"separator": {
+	SeparatorName: {
 		Command: getSeparator,
 	},
+}
+
+var BasicArgs = []string{
+	OSName,
+	KernelName,
+	TerminalName,
+	UptimeName,
 }

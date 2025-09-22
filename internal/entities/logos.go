@@ -1,15 +1,19 @@
 package entities
 
-import "strings"
-
 type LogoInfo struct {
 	TextColor int
 	Logo      []string
 	BlankRow  string
 }
 
+const (
+	ArchName   = "arch"
+	UbuntuName = "ubuntu"
+	TuxName    = "tux"
+)
+
 var LogosMap = map[string]LogoInfo{
-	"arch": {
+	ArchName: {
 		TextColor: 34,
 		Logo: []string{
 			"   \033[34m/\\\033[0m   ",
@@ -20,7 +24,7 @@ var LogosMap = map[string]LogoInfo{
 		BlankRow: "\t\t",
 	},
 
-	"ubuntu": {
+	UbuntuName: {
 		TextColor: 31,
 		Logo: []string{
 			"  \033[33m/\033[31m--( )\033[0m",
@@ -32,7 +36,7 @@ var LogosMap = map[string]LogoInfo{
 		BlankRow: "\t",
 	},
 
-	"tux": {
+	TuxName: {
 		TextColor: 37,
 		Logo: []string{
 			"   \033[37m.-,\033[0m  ",
@@ -45,21 +49,4 @@ var LogosMap = map[string]LogoInfo{
 	},
 }
 
-const baseLogo = "tux"
-
-func GetLogo(logoName string) (LogoInfo, error) {
-	if logoName == "" {
-		distro, err := runCmd(`grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"'`)
-		if err != nil {
-			return LogoInfo{}, err
-		}
-
-		logoName = strings.ToLower(strings.TrimSpace(distro))
-	}
-
-	if logo, ok := LogosMap[logoName]; ok {
-		return logo, nil
-	}
-
-	return LogosMap[baseLogo], nil
-}
+var BasicLogo = LogosMap[TuxName]

@@ -8,7 +8,13 @@ import (
 	"github.com/kourtnet/dummyfetch/internal/entities"
 )
 
-func Fetch(args []entities.Arg) ([]entities.Arg, error) {
+func Fetch(argNames []string) ([]entities.Arg, error) {
+	if len(argNames) == 0 {
+		argNames = entities.BasicArgs
+	}
+
+	args := make([]entities.Arg, len(argNames))
+
 	wg := sync.WaitGroup{}
 	wg.Add(len(args))
 
@@ -17,7 +23,7 @@ func Fetch(args []entities.Arg) ([]entities.Arg, error) {
 	errCh := make(chan error, 1)
 	defer close(errCh)
 
-	for i := range args {
+	for i := range argNames {
 		go func() {
 			defer wg.Done()
 
@@ -25,6 +31,8 @@ func Fetch(args []entities.Arg) ([]entities.Arg, error) {
 			case <-ctx.Done():
 
 			default:
+				args[i] = entities.ArgsMap[argNames[i]]
+
 				var err error
 				args[i].Contents, err = args[i].Command()
 				if err != nil {
@@ -49,11 +57,18 @@ func Fetch(args []entities.Arg) ([]entities.Arg, error) {
 	return args, nil
 }
 
-func ResolveIcon(logoName string) (entities.LogoInfo, error) {
-	logo, err := entities.GetLogo(logoName)
-	if err != nil {
-		return entities.LogoInfo{}, err
+func FetchLogo(name string) (entities.LogoInfo, error) {
+	if name == "" {
+		var err error
+		name, err = entities.GetDistro()
+		if err != nil {
+			return entities.LogoInfo{}, nil
+		}
 	}
 
-	return logo, err
+	if logo, ok := entities.LogosMap[name]; ok {
+		return logo, nil
+	}
+
+	return entities.BasicLogo, nil
 }
