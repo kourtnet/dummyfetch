@@ -19,7 +19,7 @@ func Render(logo entities.LogoInfo, args []entities.Arg) {
 
 		if i < len(args) {
 			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, args[i].Name)
-			fmt.Printf(": %s", args[i].Contents)
+			fmt.Printf(": %s\n", args[i].Contents)
 		} else {
 			fmt.Printf("\n")
 		}
