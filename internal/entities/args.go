@@ -4,6 +4,7 @@ package entities
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -62,24 +63,18 @@ var ArgsList = map[string]Arg{
 	"shell": {
 		Name: `Shell`,
 		Command: func() (string, error) {
-			output, err := runCmd(`basename $SHELL`)
-			if err != nil {
-				return "", err
-			}
+			shellPath := os.Getenv("SHELL")
+			shell := filepath.Base(shellPath) + "\n"
 
-			return output, nil
+			return shell, nil
 		},
 	},
 
 	"terminal": {
 		Name: `Terminal`,
 		Command: func() (string, error) {
-			output, err := runCmd(`echo $TERM`)
-			if err != nil {
-				return "", err
-			}
-
-			return output, nil
+			term := os.Getenv("TERM") + "\n"
+			return term, nil
 		},
 	},
 
