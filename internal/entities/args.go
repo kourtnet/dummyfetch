@@ -5,7 +5,9 @@ import (
 	"bufio"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 )
 
 type Arg struct {
@@ -81,12 +83,51 @@ var ArgsList = map[string]Arg{
 	"uptime": {
 		Name: `Uptime`,
 		Command: func() (string, error) {
-			output, err := runCmd(`uptime -p | sed 's/^up //'`)
+			fileByte, err := os.ReadFile("/proc/uptime")
 			if err != nil {
-				return "", err
+				return "", nil
 			}
 
-			return output, nil
+			uptimeStr := strings.Fields(string(fileByte))[0]
+			dur, err := time.ParseDuration(uptimeStr + "s")
+			if err != nil {
+				return "", nil
+			}
+
+			days := int(dur.Hours() / 24)
+			hours := int(dur.Hours()) - days*24
+			minutes := int(dur.Minutes()) - hours*60
+
+			var res string
+
+			if days > 0 {
+				res += strconv.Itoa(days)
+				if days > 1 {
+					res += " days "
+				} else {
+					res += " day "
+				}
+			}
+
+			if hours > 0 {
+				res += strconv.Itoa(hours)
+				if hours > 1 {
+					res += " hours "
+				} else {
+					res += " hour "
+				}
+			}
+
+			if minutes > 0 {
+				res += strconv.Itoa(minutes)
+				if minutes > 1 {
+					res += " minutes "
+				} else {
+					res += " minute "
+				}
+			}
+
+			return res + "\n", nil
 		},
 	},
 
