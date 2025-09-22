@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/kourtnet/dummyfetch/internal/flags"
 	"github.com/kourtnet/dummyfetch/internal/render"
@@ -19,10 +18,14 @@ func main() {
 	args, err := sysinfo.Fetch(cfg.ArgsOrder)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		return
 	}
 
 	logo, err := sysinfo.FetchLogo(cfg.Logo)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	render.Render(logo, args)
 }
