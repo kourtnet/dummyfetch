@@ -17,6 +17,8 @@ func Render(logo entities.LogoInfo, args []entities.Arg) {
 			fmt.Print(logo.BlankRow)
 		}
 
+		fmt.Print("  ")
+
 		if i < len(args) {
 			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, args[i].Name)
 			fmt.Printf(": %s\n", args[i].Contents)

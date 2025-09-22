@@ -11,36 +11,42 @@ import (
 
 type Config struct {
 	ArgsOrder []entities.Arg
+	LogoName  string
 }
 
-var defaultArgs = []string{
-	"os",
-	"kernel",
-	"shell",
-	"uptime",
-	"palette_bg",
-	"palette_fg",
+var defaultArgs = []entities.Arg{
+	entities.ArgsList["os"],
+	entities.ArgsList["kernel"],
+	entities.ArgsList["shell"],
+	entities.ArgsList["uptime"],
 }
 
 func Parse() (Config, error) {
 	cfg := Config{
-		[]entities.Arg{},
+		ArgsOrder: []entities.Arg{},
 	}
 
 	args := os.Args[1:]
-	if len(os.Args[1:]) == 0 {
-		args = defaultArgs
-	}
-
 	for _, v := range args {
 		vF := strings.TrimLeft(v, "-")
 
-		arg, ok := entities.ArgsList[vF]
-		if !ok {
-			return Config{}, fmt.Errorf("unknow flag: %s", v)
+		_, ok := entities.LogosMap[vF]
+		if ok {
+			cfg.LogoName = vF
+			continue
 		}
 
-		cfg.ArgsOrder = append(cfg.ArgsOrder, arg)
+		arg, ok := entities.ArgsList[vF]
+		if ok {
+			cfg.ArgsOrder = append(cfg.ArgsOrder, arg)
+			continue
+		}
+
+		return Config{}, fmt.Errorf("unknow flag: %s", v)
+	}
+
+	if len(cfg.ArgsOrder) == 0 {
+		cfg.ArgsOrder = defaultArgs
 	}
 
 	return cfg, nil

@@ -8,14 +8,14 @@ type LogoInfo struct {
 	BlankRow  string
 }
 
-var logosMap = map[string]LogoInfo{
+var LogosMap = map[string]LogoInfo{
 	"arch": {
 		TextColor: 34,
 		Logo: []string{
-			"   \033[34m/\\\033[0m\t\t",
-			"  \033[34m/\\ \\\033[0m\t\t",
-			" \033[34m/ .\\ \\\033[0m\t\t",
-			"\033[34m/.'  '.\\\033[0m\t",
+			"   \033[34m/\\\033[0m   ",
+			"  \033[34m/\\ \\\033[0m  ",
+			" \033[34m/ .\\ \\\033[0m ",
+			"\033[34m/.'  '.\\\033[0m",
 		},
 		BlankRow: "\t\t",
 	},
@@ -23,41 +23,43 @@ var logosMap = map[string]LogoInfo{
 	"ubuntu": {
 		TextColor: 31,
 		Logo: []string{
-			"  \033[33m/\033[31m-'-( )\033[0m",
+			"  \033[33m/\033[31m--( )\033[0m",
 			"\033[31m( )    \033[31m|\033[0m",
 			" \033[33m\\     \033[31m/\033[0m",
-			"   \033[31m-.-\033[33m( )\033[0m",
+			"   \033[31m--\033[33m( )\033[0m",
 			"\t",
 		},
 		BlankRow: "\t",
 	},
 
-	"linux": {
+	"tux": {
 		TextColor: 37,
 		Logo: []string{
-			"  \033[37m.-,\033[0m\t",
-			"  \033[37moo\033[37m|\033[0m\t",
-			" /\033[33mv \033[37m\\\033[0m\t",
-			"\033[33m(\\\033[37m_^\033[33m/)\033[0m\t",
-			"\t",
+			"   \033[37m.-,\033[0m  ",
+			"   \033[37moo\033[37m|\033[0m  ",
+			"  /\033[33mv \033[37m\\\033[0m  ",
+			" \033[33m(\\\033[37m_^\033[33m/)\033[0m ",
+			"",
 		},
 		BlankRow: "\t",
 	},
 }
 
-const baseLogo = "linux"
+const baseLogo = "tux"
 
-func GetLogo() (LogoInfo, error) {
-	distro, err := runCmd(`grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"'`)
-	if err != nil {
-		return LogoInfo{}, err
+func GetLogo(logoName string) (LogoInfo, error) {
+	if logoName == "" {
+		distro, err := runCmd(`grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"'`)
+		if err != nil {
+			return LogoInfo{}, err
+		}
+
+		logoName = strings.ToLower(strings.TrimSpace(distro))
 	}
 
-	distro = strings.ToLower(strings.TrimSpace(distro))
-
-	if logo, ok := logosMap[distro]; ok {
+	if logo, ok := LogosMap[logoName]; ok {
 		return logo, nil
 	}
 
-	return logosMap[baseLogo], nil
+	return LogosMap[baseLogo], nil
 }

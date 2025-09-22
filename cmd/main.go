@@ -22,7 +22,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	logo, err := sysinfo.ResolveIcon()
+	logo, err := sysinfo.ResolveIcon(cfg.LogoName)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
