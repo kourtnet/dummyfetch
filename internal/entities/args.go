@@ -44,4 +44,8 @@ var ArgsList = map[string]Arg{
 	"indent": {
 		Command: getIndent,
 	},
+
+	"separator": {
+		Command: getSeparator,
+	},
 }
