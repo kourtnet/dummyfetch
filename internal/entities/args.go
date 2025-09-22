@@ -48,12 +48,14 @@ var ArgsList = map[string]Arg{
 	"kernel": {
 		Name: `Kernel`,
 		Command: func() (string, error) {
-			output, err := runCmd(`uname -r`)
+			kernelByte, err := os.ReadFile("/proc/sys/kernel/osrelease")
 			if err != nil {
-				return "", err
+				return "", nil
 			}
 
-			return output, nil
+			kernel := strings.TrimSpace(string(kernelByte)) + "\n"
+
+			return kernel, nil
 		},
 	},
 
