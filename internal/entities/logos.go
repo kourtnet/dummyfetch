@@ -12,6 +12,8 @@ const (
 	TuxName    = "tux"
 )
 
+const BasicLogoName = TuxName
+
 var LogosMap = map[string]LogoInfo{
 	ArchName: {
 		TextColor: 34,
@@ -21,7 +23,7 @@ var LogosMap = map[string]LogoInfo{
 			" \033[34m/ .\\ \\\033[0m ",
 			"\033[34m/.'  '.\\\033[0m",
 		},
-		BlankRow: "\t\t",
+		BlankRow: "        ",
 	},
 
 	UbuntuName: {
@@ -31,9 +33,8 @@ var LogosMap = map[string]LogoInfo{
 			"\033[31m( )    \033[31m|\033[0m",
 			" \033[33m\\     \033[31m/\033[0m",
 			"   \033[31m--\033[33m( )\033[0m",
-			"\t",
 		},
-		BlankRow: "\t",
+		BlankRow: "        ",
 	},
 
 	TuxName: {
@@ -43,10 +44,7 @@ var LogosMap = map[string]LogoInfo{
 			"   \033[37moo\033[37m|\033[0m  ",
 			"  /\033[33mv \033[37m\\\033[0m  ",
 			" \033[33m(\\\033[37m_^\033[33m/)\033[0m ",
-			"",
 		},
-		BlankRow: "\t",
+		BlankRow: "        ",
 	},
 }
-
-var BasicLogo = LogosMap[TuxName]

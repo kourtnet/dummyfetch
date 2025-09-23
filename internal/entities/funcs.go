@@ -107,9 +107,9 @@ func getUptime() (string, error) {
 	if minutes > 0 {
 		res += strconv.Itoa(minutes)
 		if minutes > 1 {
-			res += " minutes"
+			res += " mins"
 		} else {
-			res += " minute"
+			res += " min"
 		}
 	}
 

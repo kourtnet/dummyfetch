@@ -1,74 +1,50 @@
-// Package sysinfo provides function for gathering system info
+// Package sysinfo provides functions for gathering system and logo info
 package sysinfo
 
 import (
-	"context"
-	"sync"
-
 	"github.com/kourtnet/dummyfetch/internal/entities"
 )
 
-func Fetch(argNames []string) ([]entities.Arg, error) {
-	if len(argNames) == 0 {
-		argNames = entities.BasicArgs
+func fetchArg(argName string) error {
+	arg := entities.ArgsMap[argName]
+	if arg.Contents != "" {
+		return nil
 	}
 
-	args := make([]entities.Arg, len(argNames))
-
-	wg := sync.WaitGroup{}
-	wg.Add(len(args))
-
-	ctx, cancel := context.WithCancel(context.Background())
-
-	errCh := make(chan error, 1)
-	defer close(errCh)
-
-	for i := range argNames {
-		go func() {
-			defer wg.Done()
-
-			select {
-			case <-ctx.Done():
-
-			default:
-				args[i] = entities.ArgsMap[argNames[i]]
-
-				var err error
-				args[i].Contents, err = args[i].Command()
-				if err != nil {
-					select {
-					case errCh <- err:
-						cancel()
-
-					default:
-					}
-				}
-			}
-		}()
+	var err error
+	arg.Contents, err = arg.Command()
+	if err != nil {
+		return err
 	}
 
-	wg.Wait()
-	select {
-	case err := <-errCh:
-		return nil, err
-	default:
-	}
+	entities.ArgsMap[argName] = arg
 
-	return args, nil
+	return nil
 }
 
-func FetchLogo(name string) (entities.LogoInfo, error) {
+func Fetch(argNames []string) error {
+	for _, v := range argNames {
+		err := fetchArg(v)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func FetchLogo(name string) (string, error) {
 	if name == "" {
 		var err error
 		name, err = entities.GetDistro()
 		if err != nil {
-			return entities.LogoInfo{}, nil
+			return "", nil
 		}
 	}
 
-	if logo, ok := entities.LogosMap[name]; ok {
-		return logo, nil
+	if _, ok := entities.LogosMap[name]; ok {
+		return name, nil
 	}
 
-	return entities.BasicLogo, nil
+	return entities.BasicLogoName, nil
 }

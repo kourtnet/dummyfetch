@@ -67,5 +67,9 @@ func Parse() (Config, error) {
 		return Config{}, fmt.Errorf("unknown flag: %s", flag)
 	}
 
+	if len(cfg.ArgsOrder) == 0 {
+		cfg.ArgsOrder = entities.BasicArgs
+	}
+
 	return cfg, nil
 }

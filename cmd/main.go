@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/kourtnet/dummyfetch/internal/flags"
 	"github.com/kourtnet/dummyfetch/internal/render"
@@ -9,14 +10,14 @@ import (
 )
 
 func main() {
+	start := time.Now()
 	cfg, err := flags.Parse()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	args, err := sysinfo.Fetch(cfg.ArgsOrder)
-	if err != nil {
+	if err := sysinfo.Fetch(cfg.ArgsOrder); err != nil {
 		fmt.Println(err)
 		return
 	}
@@ -27,5 +28,7 @@ func main() {
 		return
 	}
 
-	render.Render(logo, args)
+	render.Render(logo, cfg.ArgsOrder)
+
+	fmt.Println(time.Since(start))
 }
