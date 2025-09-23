@@ -32,9 +32,13 @@ var mockOpen = func(str string, errO error) (string, func(string) (*os.File, err
 	}
 }
 
-func Test_getOsReleaseInfo(t *testing.T) {
-	oldOpen := open
+var mockGetEnv = func(str string) func(string) string {
+	return func(s string) string {
+		return str
+	}
+}
 
+func Test_getOsReleaseInfo(t *testing.T) {
 	testCases := []struct {
 		name         string
 		fileContents string
@@ -72,6 +76,8 @@ func Test_getOsReleaseInfo(t *testing.T) {
 		},
 	}
 
+	oldOpen := open
+
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			var errO error
@@ -98,8 +104,6 @@ func Test_getOsReleaseInfo(t *testing.T) {
 }
 
 func Test_getKernel(t *testing.T) {
-	oldReadFile := readFile
-
 	testCases := []struct {
 		name    string
 		readF   func(string) ([]byte, error)
@@ -137,6 +141,8 @@ func Test_getKernel(t *testing.T) {
 		},
 	}
 
+	oldReadFile := readFile
+
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
 			readFile = tt.readF
@@ -153,6 +159,55 @@ func Test_getKernel(t *testing.T) {
 	}
 
 	readFile = oldReadFile
+}
+
+func Test_getShell(t *testing.T) {
+	testCases := []struct {
+		name    string
+		getEnvF func(string) string
+		wantStr string
+	}{
+		{
+			name:    "only basename",
+			getEnvF: mockGetEnv("mocksh"),
+			wantStr: "mocksh",
+		},
+		{
+			name:    "full path",
+			getEnvF: mockGetEnv("/bin/mocksh"),
+			wantStr: "mocksh",
+		},
+	}
+
+	oldGetEnv := getEnv
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			getEnv = tt.getEnvF
+
+			str, err := getShell()
+
+			require.NoError(t, err)
+			assert.Equal(t, tt.wantStr, str)
+		})
+	}
+
+	getEnv = oldGetEnv
+}
+
+func Test_getSTerminal(t *testing.T) {
+	oldGetEnv := getEnv
+
+	t.Run("simple test", func(t *testing.T) {
+		getEnv = mockGetEnv("kitty")
+
+		str, err := getTerminal()
+
+		require.NoError(t, err)
+		assert.Equal(t, "kitty", str)
+	})
+
+	getEnv = oldGetEnv
 }
 
 func Test_getUptime(t *testing.T) {
