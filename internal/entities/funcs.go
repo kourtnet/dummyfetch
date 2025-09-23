@@ -20,7 +20,7 @@ func getPrettyDistro() (string, error) {
 func getOSReleaseInfo(prefix string) (string, error) {
 	file, err := os.Open("/etc/os-release")
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	defer file.Close()
@@ -45,10 +45,13 @@ func getOSReleaseInfo(prefix string) (string, error) {
 	return res, nil
 }
 
+// Required for mock-ing files in tests
+var readFile = os.ReadFile
+
 func getKernel() (string, error) {
-	kernelByte, err := os.ReadFile("/proc/sys/kernel/osrelease")
+	kernelByte, err := readFile("/proc/sys/kernel/osrelease")
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	kernel := strings.TrimSpace(string(kernelByte))
@@ -69,7 +72,7 @@ func getTerminal() (string, error) {
 }
 
 func getUptime() (string, error) {
-	fileByte, err := os.ReadFile("/proc/uptime")
+	fileByte, err := readFile("/proc/uptime")
 	if err != nil {
 		return "", nil
 	}
