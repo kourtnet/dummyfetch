@@ -2,6 +2,7 @@ package entities
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +13,88 @@ var mockRead = func(str string, err error) func(string) ([]byte, error) {
 	return func(s string) ([]byte, error) {
 		return []byte(str), err
 	}
+}
+
+var mockOpen = func(str string, errO error) (string, func(string) (*os.File, error)) {
+	file, err := os.CreateTemp("./", "mockOpenTmp")
+	if err != nil {
+		panic(err)
+	}
+
+	if _, err := file.WriteString(str); err != nil {
+		panic(err)
+	}
+
+	file.Seek(0, 0)
+
+	return file.Name(), func(s string) (*os.File, error) {
+		return file, errO
+	}
+}
+
+func Test_getOsReleaseInfo(t *testing.T) {
+	oldOpen := open
+
+	testCases := []struct {
+		name         string
+		fileContents string
+		prefix       string
+		wantErr      bool
+		wantStr      string
+	}{
+		{
+			name:    "open returns error",
+			wantErr: true,
+		},
+		{
+			name:         "open returns empty file",
+			fileContents: "",
+			prefix:       "ID=",
+			wantStr:      "",
+		},
+		{
+			name:         "open returns file without required prefix",
+			fileContents: `PRETTY_NAME="Mock Linux"`,
+			prefix:       "ID=",
+			wantStr:      "",
+		},
+		{
+			name:         "open returns file with required prefix",
+			fileContents: "PRETTY_NAME=\"Mock Linux\"\nID=\"mock\"",
+			prefix:       "ID=",
+			wantStr:      "mock",
+		},
+		{
+			name:         "open returns file with required prefix and value without quotes",
+			fileContents: "PRETTY_NAME=\"Mock Linux\"\nID=mock",
+			prefix:       "ID=",
+			wantStr:      "mock",
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			var errO error
+			if tt.wantErr {
+				errO = errors.New("error")
+			}
+
+			var filepath string
+			filepath, open = mockOpen(tt.fileContents, errO)
+			defer os.Remove(filepath)
+
+			str, err := getOSReleaseInfo(tt.prefix)
+
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, tt.wantStr, str)
+			}
+		})
+	}
+
+	open = oldOpen
 }
 
 func Test_getKernel(t *testing.T) {

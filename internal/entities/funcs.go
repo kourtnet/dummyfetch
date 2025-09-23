@@ -10,6 +10,13 @@ import (
 	"time"
 )
 
+// Required for mock-ing files in tests
+var (
+	readFile = os.ReadFile
+	getEnv   = os.Getenv
+	open     = os.Open
+)
+
 func GetDistro() (string, error) {
 	return getOSReleaseInfo("ID=")
 }
@@ -19,7 +26,7 @@ func getPrettyDistro() (string, error) {
 }
 
 func getOSReleaseInfo(prefix string) (string, error) {
-	file, err := os.Open("/etc/os-release")
+	file, err := open("/etc/os-release")
 	if err != nil {
 		return "", err
 	}
@@ -46,9 +53,6 @@ func getOSReleaseInfo(prefix string) (string, error) {
 	return res, nil
 }
 
-// Required for mock-ing files in tests
-var readFile = os.ReadFile
-
 func getKernel() (string, error) {
 	kernelByte, err := readFile("/proc/sys/kernel/osrelease")
 	if err != nil {
@@ -61,14 +65,14 @@ func getKernel() (string, error) {
 }
 
 func getShell() (string, error) {
-	shellPath := os.Getenv("SHELL")
+	shellPath := getEnv("SHELL")
 	shell := filepath.Base(shellPath)
 
 	return shell, nil
 }
 
 func getTerminal() (string, error) {
-	term := os.Getenv("TERM")
+	term := getEnv("TERM")
 	return term, nil
 }
 
