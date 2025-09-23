@@ -14,7 +14,7 @@ var mockRead = func(str string, err error) func(string) ([]byte, error) {
 	}
 }
 
-func Test_gerKernel(t *testing.T) {
+func Test_getKernel(t *testing.T) {
 	oldReadFile := readFile
 
 	testCases := []struct {
@@ -97,16 +97,116 @@ func Test_getUptime(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "two trimmed valid numbers",
+			readF:   mockRead("100.10 50.10", nil),
+			wantErr: false,
+			wantStr: "1 min",
+		},
+		{
+			name:    "two trimmed invalid numbers",
+			readF:   mockRead("100q.10 50.10", nil),
+			wantErr: true,
+		},
+		{
+			name:    "one trimmed invalid number",
+			readF:   mockRead("100q.10", nil),
+			wantErr: true,
+		},
+		{
+			name:    "one untrimmed valid number",
+			readF:   mockRead("60   ", nil),
+			wantErr: false,
+			wantStr: "1 min",
+		},
+		{
+			name:    "two untrimmed valid numbers",
+			readF:   mockRead("60     100", nil),
+			wantErr: false,
+			wantStr: "1 min",
+		},
+		{
+			name:    "two untrimmed numbers, second is invalid",
+			readF:   mockRead("60     10s0", nil),
+			wantErr: false,
+			wantStr: "1 min",
+		},
+		{
 			name:    "one trimmed valid number representing 1s",
 			readF:   mockRead("1", nil),
 			wantErr: false,
-			wantStr: "mock",
+			wantStr: "0 mins",
 		},
 		{
-			name:    "readFile returns untrimmed name with version",
-			readF:   mockRead("6.16.7-mock1-1 \n\t", nil),
+			name:    "one trimmed valid number representing 59s",
+			readF:   mockRead("59", nil),
 			wantErr: false,
-			wantStr: "6.16.7-mock1-1",
+			wantStr: "0 mins",
+		},
+		{
+			name:    "one trimmed valid number representing 59s, 99ms",
+			readF:   mockRead("59.99", nil),
+			wantErr: false,
+			wantStr: "0 mins",
+		},
+		{
+			name:    "one trimmed valid number representing 1min",
+			readF:   mockRead("60", nil),
+			wantErr: false,
+			wantStr: "1 min",
+		},
+		{
+			name:    "one trimmed valid number representing 1min, 59s, 99ms",
+			readF:   mockRead("119.99", nil),
+			wantErr: false,
+			wantStr: "1 min",
+		},
+		{
+			name:    "one trimmed valid number representing 2mins",
+			readF:   mockRead("120", nil),
+			wantErr: false,
+			wantStr: "2 mins",
+		},
+		{
+			name:    "one trimmed valid number representing 59 mins, 59s",
+			readF:   mockRead("3599", nil),
+			wantErr: false,
+			wantStr: "59 mins",
+		},
+		{
+			name:    "one trimmed valid number representing 1h",
+			readF:   mockRead("3600", nil),
+			wantErr: false,
+			wantStr: "1 hour",
+		},
+		{
+			name:    "one trimmed valid number representing 2h",
+			readF:   mockRead("7200", nil),
+			wantErr: false,
+			wantStr: "2 hours",
+		},
+		{
+			name:    "one trimmed valid number representing 1 day",
+			readF:   mockRead("86400", nil),
+			wantErr: false,
+			wantStr: "1 day",
+		},
+		{
+			name:    "one trimmed valid number representing 2 days",
+			readF:   mockRead("172800", nil),
+			wantErr: false,
+			wantStr: "2 days",
+		},
+		{
+			name:    "one trimmed valid number representing 2 days, 3 hours, 5 mins, 10s, 5ms",
+			readF:   mockRead("183910.05", nil),
+			wantErr: false,
+			wantStr: "2 days, 3 hours, 5 mins",
+		},
+		{
+			name:    "one trimmed valid number representing 1 day, 1 hour, 1 min",
+			readF:   mockRead("90060", nil),
+			wantErr: false,
+			wantStr: "1 day, 1 hour, 1 min",
 		},
 	}
 
@@ -114,7 +214,7 @@ func Test_getUptime(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			readFile = tt.readF
 
-			str, err := getKernel()
+			str, err := getUptime()
 
 			if tt.wantErr {
 				require.Error(t, err)

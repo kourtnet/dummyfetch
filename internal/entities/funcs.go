@@ -75,7 +75,7 @@ func getTerminal() (string, error) {
 func getUptime() (string, error) {
 	fileByte, err := readFile("/proc/uptime")
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	fileFields := strings.Fields(string(fileByte))
@@ -87,30 +87,30 @@ func getUptime() (string, error) {
 
 	dur, err := time.ParseDuration(uptimeStr + "s")
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	days := int(dur.Hours() / 24)
 	hours := int(dur.Hours()) - days*24
-	minutes := int(dur.Minutes()) - hours*60
+	minutes := int(dur.Minutes()) - days*24*60 - hours*60
 
 	var res string
 
 	if days > 0 {
 		res += strconv.Itoa(days)
 		if days > 1 {
-			res += " days "
+			res += " days, "
 		} else {
-			res += " day "
+			res += " day, "
 		}
 	}
 
 	if hours > 0 {
 		res += strconv.Itoa(hours)
 		if hours > 1 {
-			res += " hours "
+			res += " hours, "
 		} else {
-			res += " hour "
+			res += " hour, "
 		}
 	}
 
@@ -127,7 +127,7 @@ func getUptime() (string, error) {
 		res = "0 mins"
 	}
 
-	return res, nil
+	return strings.TrimSuffix(res, ", "), nil
 }
 
 func getPaletteBg() (string, error) {
