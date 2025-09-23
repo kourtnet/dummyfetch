@@ -2,6 +2,7 @@ package entities
 
 import (
 	"bufio"
+	"errors"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -77,7 +78,13 @@ func getUptime() (string, error) {
 		return "", nil
 	}
 
-	uptimeStr := strings.Fields(string(fileByte))[0]
+	fileFields := strings.Fields(string(fileByte))
+	if len(fileFields) == 0 {
+		return "", errors.New("uptime file is empty")
+	}
+
+	uptimeStr := fileFields[0]
+
 	dur, err := time.ParseDuration(uptimeStr + "s")
 	if err != nil {
 		return "", nil
@@ -114,6 +121,10 @@ func getUptime() (string, error) {
 		} else {
 			res += " min"
 		}
+	}
+
+	if res == "" {
+		res = "0 mins"
 	}
 
 	return res, nil
