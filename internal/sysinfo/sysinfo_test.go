@@ -30,3 +30,10 @@ func BenchmarkFetch5Args(b *testing.B) {
 	argNames := []string{"kernel", "os", "terminal", "uptime", "shell"}
 	fetchNArgs(b, argNames)
 }
+
+func BenchmarkFetch1ArgRepeatedly(b *testing.B) {
+	argNames := []string{"kernel"}
+	for b.Loop() {
+		Fetch(argNames)
+	}
+}

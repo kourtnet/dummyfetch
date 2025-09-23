@@ -2,35 +2,53 @@
 package sysinfo
 
 import (
+	"context"
+	"sync"
+
 	"github.com/kourtnet/dummyfetch/internal/entities"
+	"golang.org/x/sync/errgroup"
 )
 
-func fetchArg(argName string) error {
+func fetchArg(argName string, mu *sync.RWMutex) error {
+	var err error
+
+	mu.RLock()
 	arg := entities.ArgsMap[argName]
+	mu.RUnlock()
+
 	if arg.Contents != "" {
 		return nil
 	}
 
-	var err error
 	arg.Contents, err = arg.Command()
 	if err != nil {
 		return err
 	}
 
+	mu.Lock()
 	entities.ArgsMap[argName] = arg
+	mu.Unlock()
 
 	return nil
 }
 
 func Fetch(argNames []string) error {
+	ctx := context.Background()
+	g, ctx := errgroup.WithContext(ctx)
+	mu := &sync.RWMutex{}
+
 	for _, v := range argNames {
-		err := fetchArg(v)
-		if err != nil {
-			return err
-		}
+		g.Go(func() error {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+			}
+			return fetchArg(v, mu)
+		})
 	}
 
-	return nil
+	return g.Wait()
 }
 
 func FetchLogo(name string) (string, error) {
