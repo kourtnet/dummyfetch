@@ -7,10 +7,6 @@ import (
 	"github.com/kourtnet/dummyfetch/internal/entities"
 )
 
-type Config struct {
-	modules Modules
-}
-
 var argsMap = map[string]struct{}{
 	entities.OSName:        {},
 	entities.KernelName:    {},
@@ -28,12 +24,11 @@ var logosMap = map[string]string{
 	"--tux":    entities.TuxName,
 }
 
-func Parse() (Config, error) {
-	cfg := Config{}
-
-	flag.Var(&cfg.modules, "module", "define a module to print in a form \"title\":\"module\" or just \"module\"")
-	flag.Var(&Print{&cfg.modules}, "print", "define a string to print")
+func Parse() error {
+	flag.Func("module", "define a module to print in a form \"title\":\"module\" or just \"module\"", addModule)
+	flag.Func("print", "define a string to print", addPrint)
+	flag.Func("distro", "define distro logo to print. Use already predefined name or path to a text file with custom logo in it", setDistroLogo)
 
 	flag.Parse()
-	return cfg, nil
+	return nil
 }

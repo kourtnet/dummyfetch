@@ -10,6 +10,7 @@ const (
 	ArchName   = "arch"
 	UbuntuName = "ubuntu"
 	TuxName    = "tux"
+	CustomName = "custom"
 )
 
 const BasicLogoName = TuxName
@@ -46,5 +47,8 @@ var LogosMap = map[string]LogoInfo{
 			" \033[33m(\\\033[37m_^\033[33m/)\033[0m ",
 		},
 		BlankRow: "        ",
+	},
+	CustomName: {
+		TextColor: 37,
 	},
 }

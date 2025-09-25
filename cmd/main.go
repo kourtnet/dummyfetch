@@ -8,13 +8,13 @@ import (
 
 func main() {
 	// start := time.Now()
-	cfg, err := flags.Parse()
+	err := flags.Parse()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Println(cfg)
+	fmt.Println(flags.Config)
 	//
 	//	if err := sysinfo.Fetch(cfg.ArgsOrder); err != nil {
 	//		fmt.Println(err)
