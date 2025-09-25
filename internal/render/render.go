@@ -5,12 +5,13 @@ import (
 	"fmt"
 
 	"github.com/kourtnet/dummyfetch/internal/entities"
+	"github.com/kourtnet/dummyfetch/internal/flags"
 )
 
-func Render(logoName string, args []string) {
-	logo := entities.LogosMap[logoName]
+func Render() {
+	logo := entities.LogosMap[flags.Config.LogoName]
 
-	maxLen := max(len(logo.Logo), len(args))
+	maxLen := max(len(logo.Logo), len(flags.Config.Modules))
 
 	for i := range maxLen {
 		if i < len(logo.Logo) {
@@ -21,9 +22,15 @@ func Render(logoName string, args []string) {
 
 		fmt.Print("  ")
 
-		if i < len(args) {
-			arg := entities.ArgsMap[args[i]]
-			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, arg.Name)
+		if i < len(flags.Config.Modules) {
+			arg := entities.ArgsMap[flags.Config.Modules[i].Arg]
+
+			titleToPrint := arg.BasicTitle
+			if flags.Config.Modules[i].IsTitleSet {
+				titleToPrint = flags.Config.Modules[i].Title
+			}
+
+			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, titleToPrint)
 			fmt.Printf(": %s\n", arg.Contents)
 		} else {
 			fmt.Println()

@@ -2,19 +2,14 @@
 package sysinfo
 
 import (
-	"context"
-	"sync"
-
 	"github.com/kourtnet/dummyfetch/internal/entities"
-	"golang.org/x/sync/errgroup"
+	"github.com/kourtnet/dummyfetch/internal/flags"
 )
 
-func fetchArg(argName string, mu *sync.RWMutex) error {
+func fetchArg(argName string) error {
 	var err error
 
-	mu.RLock()
 	arg := entities.ArgsMap[argName]
-	mu.RUnlock()
 
 	if arg.Contents != "" {
 		return nil
@@ -25,44 +20,37 @@ func fetchArg(argName string, mu *sync.RWMutex) error {
 		return err
 	}
 
-	mu.Lock()
 	entities.ArgsMap[argName] = arg
-	mu.Unlock()
 
 	return nil
 }
 
-func Fetch(argNames []string) error {
-	ctx := context.Background()
-	g, ctx := errgroup.WithContext(ctx)
-	mu := &sync.RWMutex{}
-
-	for _, v := range argNames {
-		g.Go(func() error {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
-			}
-			return fetchArg(v, mu)
-		})
-	}
-
-	return g.Wait()
-}
-
-func FetchLogo(name string) (string, error) {
-	if name == "" {
-		var err error
-		name, err = entities.GetDistro()
+func Fetch() error {
+	for _, v := range flags.Config.Modules {
+		err := fetchArg(v.Arg)
 		if err != nil {
-			return "", nil
+			return err
 		}
 	}
 
-	if _, ok := entities.LogosMap[name]; ok {
-		return name, nil
+	return nil
+}
+
+func FetchLogo() error {
+	if flags.Config.LogoName != "" {
+		return nil
 	}
 
-	return entities.BasicLogoName, nil
+	distroName, err := entities.GetDistro()
+	if err != nil {
+		return err
+	}
+
+	if _, ok := entities.LogosMap[distroName]; ok {
+		flags.Config.LogoName = distroName
+	} else {
+		flags.Config.LogoName = entities.BasicLogoName
+	}
+
+	return nil
 }

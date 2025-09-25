@@ -145,5 +145,5 @@ func getPaletteFg() (string, error) {
 }
 
 func getPrint() (string, error) {
-	return "\033[2D", nil
+	return "\033[2D ", nil
 }
