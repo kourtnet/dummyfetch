@@ -25,7 +25,7 @@ func Render() {
 		if i < len(flags.Config.Modules) {
 			arg := entities.ArgsMap[flags.Config.Modules[i].Arg]
 
-			titleToPrint := arg.BasicTitle
+			titleToPrint := arg.DefaultTitle
 			if flags.Config.Modules[i].IsTitleSet {
 				titleToPrint = flags.Config.Modules[i].Title
 			}

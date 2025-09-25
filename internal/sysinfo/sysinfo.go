@@ -25,7 +25,17 @@ func fetchArg(argName string) error {
 	return nil
 }
 
+func SetDefaultModules() {
+	for _, str := range entities.DefaultArgs {
+		flags.Config.Modules = append(flags.Config.Modules, flags.Module{Arg: str})
+	}
+}
+
 func Fetch() error {
+	if len(flags.Config.Modules) == 0 {
+		SetDefaultModules()
+	}
+
 	for _, v := range flags.Config.Modules {
 		err := fetchArg(v.Arg)
 		if err != nil {

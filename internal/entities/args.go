@@ -2,9 +2,9 @@
 package entities
 
 type Arg struct {
-	BasicTitle string
-	Command    func() (string, error)
-	Contents   string
+	DefaultTitle string
+	Command      func() (string, error)
+	Contents     string
 }
 
 const (
@@ -20,28 +20,28 @@ const (
 
 var ArgsMap = map[string]Arg{
 	OSName: {
-		BasicTitle: "OS",
-		Command:    getPrettyDistro,
+		DefaultTitle: "OS",
+		Command:      getPrettyDistro,
 	},
 
 	KernelName: {
-		BasicTitle: "Kernel",
-		Command:    getKernel,
+		DefaultTitle: "Kernel",
+		Command:      getKernel,
 	},
 
 	ShellName: {
-		BasicTitle: "Shell",
-		Command:    getShell,
+		DefaultTitle: "Shell",
+		Command:      getShell,
 	},
 
 	TerminalName: {
-		BasicTitle: "Terminal",
-		Command:    getTerminal,
+		DefaultTitle: "Terminal",
+		Command:      getTerminal,
 	},
 
 	UptimeName: {
-		BasicTitle: "Uptime",
-		Command:    getUptime,
+		DefaultTitle: "Uptime",
+		Command:      getUptime,
 	},
 
 	PaletteBgName: {
@@ -57,7 +57,7 @@ var ArgsMap = map[string]Arg{
 	},
 }
 
-var BasicArgs = []string{
+var DefaultArgs = []string{
 	OSName,
 	KernelName,
 	TerminalName,
