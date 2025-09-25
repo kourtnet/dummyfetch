@@ -2,45 +2,25 @@
 package flags
 
 import (
-	"fmt"
-	"os"
+	"flag"
 
 	"github.com/kourtnet/dummyfetch/internal/entities"
 )
 
 type Config struct {
-	ArgsOrder []string
-	Logo      string
+	modules Modules
 }
 
-func (c *Config) appendArg(flag string) bool {
-	if arg, ok := argsMap[flag]; ok {
-		c.ArgsOrder = append(c.ArgsOrder, arg)
-		return true
-	}
-
-	return false
-}
-
-func (c *Config) setLogo(flag string) bool {
-	if logo, ok := logosMap[flag]; ok {
-		c.Logo = logo
-		return true
-	}
-
-	return false
-}
-
-var argsMap = map[string]string{
-	"--os":         entities.OSName,
-	"--kernel":     entities.KernelName,
-	"--shell":      entities.ShellName,
-	"--term":       entities.TerminalName,
-	"--uptime":     entities.UptimeName,
-	"--palette_bg": entities.PaletteBgName,
-	"--palette_fg": entities.PaletteFgName,
-	"--indent":     entities.IndentName,
-	"--sep":        entities.SeparatorName,
+var argsMap = map[string]struct{}{
+	entities.OSName:        {},
+	entities.KernelName:    {},
+	entities.ShellName:     {},
+	entities.TerminalName:  {},
+	entities.UptimeName:    {},
+	entities.PaletteBgName: {},
+	entities.PaletteFgName: {},
+	entities.IndentName:    {},
+	entities.SeparatorName: {},
 }
 
 var logosMap = map[string]string{
@@ -50,26 +30,9 @@ var logosMap = map[string]string{
 }
 
 func Parse() (Config, error) {
-	cfg := Config{
-		ArgsOrder: []string{},
-	}
+	cfg := Config{}
 
-	flags := os.Args[1:]
-	for _, flag := range flags {
-		if ok := cfg.appendArg(flag); ok {
-			continue
-		}
-
-		if ok := cfg.setLogo(flag); ok {
-			continue
-		}
-
-		return Config{}, fmt.Errorf("unknown flag: %s", flag)
-	}
-
-	if len(cfg.ArgsOrder) == 0 {
-		cfg.ArgsOrder = entities.BasicArgs
-	}
-
+	flag.Var(&cfg.modules, "module", "define a module to print in a form \"title\":\"module\" or just \"module\"")
+	flag.Parse()
 	return cfg, nil
 }
