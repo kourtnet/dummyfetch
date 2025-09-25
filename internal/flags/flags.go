@@ -19,8 +19,7 @@ var argsMap = map[string]struct{}{
 	entities.UptimeName:    {},
 	entities.PaletteBgName: {},
 	entities.PaletteFgName: {},
-	entities.IndentName:    {},
-	entities.SeparatorName: {},
+	entities.PrintName:     {},
 }
 
 var logosMap = map[string]string{
@@ -33,6 +32,8 @@ func Parse() (Config, error) {
 	cfg := Config{}
 
 	flag.Var(&cfg.modules, "module", "define a module to print in a form \"title\":\"module\" or just \"module\"")
+	flag.Var(&Print{&cfg.modules}, "print", "define a string to print")
+
 	flag.Parse()
 	return cfg, nil
 }

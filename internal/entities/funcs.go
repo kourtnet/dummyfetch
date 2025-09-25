@@ -144,11 +144,6 @@ func getPaletteFg() (string, error) {
 	return output, nil
 }
 
-func getIndent() (string, error) {
-	return "\033[2D ", nil
-}
-
-func getSeparator() (string, error) {
-	output := "\033[2D------------------------"
-	return output, nil
+func getPrint() (string, error) {
+	return "\033[2D", nil
 }

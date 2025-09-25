@@ -15,8 +15,7 @@ const (
 	UptimeName    = "uptime"
 	PaletteBgName = "palette_bg"
 	PaletteFgName = "palette_fg"
-	IndentName    = "indent"
-	SeparatorName = "separator"
+	PrintName     = "print"
 )
 
 var ArgsMap = map[string]Arg{
@@ -53,12 +52,8 @@ var ArgsMap = map[string]Arg{
 		Command: getPaletteFg,
 	},
 
-	IndentName: {
-		Command: getIndent,
-	},
-
-	SeparatorName: {
-		Command: getSeparator,
+	PrintName: {
+		Command: getPrint,
 	},
 }
 
