@@ -57,9 +57,4 @@ var ArgsMap = map[string]Arg{
 	},
 }
 
-var DefaultArgs = []string{
-	OSName,
-	KernelName,
-	TerminalName,
-	UptimeName,
-}
+const DefaultSeparator = "  "

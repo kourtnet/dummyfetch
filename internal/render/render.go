@@ -66,6 +66,23 @@ func prepareStr(str string) string {
 	return res
 }
 
+func countLogoLength() {
+	const format = "\x1b[%dC"
+
+	logo := entities.LogosMap[entities.CustomName]
+
+	if len(entities.LogosMap[entities.CustomName].Logo) == 0 {
+		logo.BlankRow = fmt.Sprintf(format, 0)
+	} else {
+		clearRow := styleVarRegex.ReplaceAllString(logo.Logo[0], "")
+		length := len([]rune(clearRow))
+
+		logo.BlankRow = fmt.Sprintf(format, length)
+	}
+
+	entities.LogosMap[entities.CustomName] = logo
+}
+
 func prepareLogo() error {
 	if err := sysinfo.FetchLogo(); err != nil {
 		return err
@@ -74,6 +91,8 @@ func prepareLogo() error {
 	if flags.Config.LogoName != entities.CustomName {
 		return nil
 	}
+
+	countLogoLength()
 
 	for i, str := range entities.LogosMap[entities.CustomName].Logo {
 		entities.LogosMap[entities.CustomName].Logo[i] = prepareStr(str)
@@ -84,8 +103,10 @@ func prepareLogo() error {
 
 func prepareArg(str string) (string, string, error) {
 	str = prepareStr(str)
+
 	var title string
 	var err error
+
 	res := styleVarRegex.ReplaceAllStringFunc(str, func(match string) string {
 		argName := strings.TrimPrefix(strings.TrimSuffix(match, "}"), "${")
 
@@ -140,15 +161,11 @@ func prepare() error {
 	return nil
 }
 
-func Render() {
-	if err := prepare(); err != nil {
-		fmt.Println(err)
-		return
-	}
-
+func render() {
 	logo := entities.LogosMap[flags.Config.LogoName]
+	modules := flags.Config.Modules
 
-	maxLen := max(len(logo.Logo), len(flags.Config.Modules))
+	maxLen := max(len(logo.Logo), len(modules))
 
 	for i := range maxLen {
 		if i < len(logo.Logo) {
@@ -157,15 +174,24 @@ func Render() {
 			fmt.Print(logo.BlankRow)
 		}
 
-		fmt.Print("  ")
+		fmt.Print(flags.Config.Separator)
 
-		if i < len(flags.Config.Modules) {
-			title := flags.Config.Modules[i].Title
+		if i < len(modules) {
+			title := modules[i].Title
 
 			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, title)
-			fmt.Printf(": %s\n", flags.Config.Modules[i].Arg)
+			fmt.Printf(": %s\n", modules[i].Arg)
 		} else {
 			fmt.Println()
 		}
 	}
+}
+
+func PrepareAndRender() {
+	if err := prepare(); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	render()
 }

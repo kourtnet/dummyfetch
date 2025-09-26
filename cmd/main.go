@@ -7,5 +7,5 @@ import (
 
 func main() {
 	flags.Parse()
-	render.Render()
+	render.PrepareAndRender()
 }

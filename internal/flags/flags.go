@@ -13,12 +13,26 @@ func Parse() {
 	flag.Func("module", "define a module to print in a form \"title\":\"module\" or just \"module\"", addModule)
 	flag.Func("mod", "-module alias", addModule)
 
-	flag.StringVar(&Config.LogoName, "distro", entities.AutoName, "define distro logo to print. Use already predefined name or path to a text file with custom logo in it")
-
 	flag.Func("variable", "define a style variable to use in modules formatting. Predefined variables do not not work here, so as user variables", addVar)
 	flag.Func("var", "-variable alias", addVar)
 
+	flag.StringVar(&Config.LogoName, "distro", entities.AutoName, "define distro logo to print. Use already predefined name or path to a text file with custom logo in it")
+
+	flag.Func("separator", "define separator between logo and modules", setSeparator)
+	flag.Func("sep", "-separator alias", setSeparator)
+
 	flag.Parse()
+
+	if len(Config.Modules) == 0 {
+		Config.Modules = defaultArgs
+	}
+}
+
+var defaultArgs = []Module{
+	{Arg: "${" + entities.OSName + "}"},
+	{Arg: "${" + entities.KernelName + "}"},
+	{Arg: "${" + entities.TerminalName + "}"},
+	{Arg: "${" + entities.UptimeName + "}"},
 }
 
 type Module struct {
@@ -28,11 +42,21 @@ type Module struct {
 }
 
 var Config = struct {
-	Modules  []Module
-	LogoName string
-	Vars     map[string]string
+	Modules   []Module
+	LogoName  string
+	Vars      map[string]string
+	Separator string
 }{
-	Vars: map[string]string{},
+	Vars:      map[string]string{},
+	Separator: entities.DefaultSeparator,
+}
+
+func setSeparator(str string) error {
+	if Config.Separator == entities.DefaultSeparator {
+		Config.Separator = str
+	}
+
+	return nil
 }
 
 func unescapeStr(str string) (string, error) {
