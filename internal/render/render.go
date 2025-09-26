@@ -18,25 +18,41 @@ const (
 )
 
 var styleVars = map[string]string{
-	// Background colors
-	"bg0": "\033[30m", // black
-	"bg1": "\033[31m", // red
-	"bg2": "\033[32m", // green
-	"bg3": "\033[33m", // yellow
-	"bg4": "\033[34m", // blue
-	"bg5": "\033[35m", // magenta
-	"bg6": "\033[36m", // cyan
-	"bg7": "\033[37m", // white
-
 	// Foreground colors
-	"fg0": "\033[90m", // black
-	"fg1": "\033[91m", // red
-	"fg2": "\033[92m", // green
-	"fg3": "\033[93m", // yellow
-	"fg4": "\033[94m", // blue
-	"fg5": "\033[95m", // magenta
-	"fg6": "\033[96m", // cyan
-	"fg7": "\033[97m", // white
+	"fgdbla": "\033[30m", // black
+	"fgdr":   "\033[31m", // red
+	"fgdg":   "\033[32m", // green
+	"fgdy":   "\033[33m", // yellow
+	"fgdblu": "\033[34m", // blue
+	"fgdm":   "\033[35m", // magenta
+	"fgdc":   "\033[36m", // cyan
+	"fgdw":   "\033[37m", // white
+	"fglbla": "\033[90m", // black
+	"fglr":   "\033[91m", // red
+	"fglg":   "\033[92m", // green
+	"fgly":   "\033[93m", // yellow
+	"fglblu": "\033[94m", // blue
+	"fglm":   "\033[95m", // magenta
+	"fglc":   "\033[96m", // cyan
+	"fglw":   "\033[97m", // white
+
+	// Background colors
+	"bgdbla": "\033[40m",  // black
+	"bgdr":   "\033[41m",  // red
+	"bgdg":   "\033[42m",  // green
+	"bgdy":   "\033[43m",  // yellow
+	"bgdblu": "\033[44m",  // blue
+	"bgdm":   "\033[45m",  // magenta
+	"bgdc":   "\033[46m",  // cyan
+	"bgdw":   "\033[107m", // white
+	"bglbla": "\033[100m", // black
+	"bglr":   "\033[101m", // red
+	"bglg":   "\033[102m", // green
+	"bgly":   "\033[103m", // yellow
+	"bglblu": "\033[104m", // blue
+	"bglm":   "\033[105m", // magenta
+	"bglc":   "\033[106m", // cyan
+	"bglw":   "\033[107m", // white
 
 	// Text styles
 	"b": "\033[1m", // bold
@@ -173,7 +189,18 @@ func render() {
 	os.Stdout.WriteString(logoJoined + seqReset)
 
 	logoHeight := len(entities.LogosMap[flags.Config.LogoName].Logo)
-	os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight-1) + "A")
+	modsNum := len(flags.Config.Modules)
+
+	if modsNum > logoHeight {
+		for range modsNum - logoHeight {
+			os.Stdout.WriteString("\n")
+		}
+		os.Stdout.WriteString(seqStart + strconv.Itoa(modsNum-1) + "A")
+	} else {
+		os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight-1) + "A")
+	}
+
+	os.Stdout.WriteString(entities.LogosMap[flags.Config.LogoName].BlankRow)
 
 	for _, module := range flags.Config.Modules {
 		os.Stdout.WriteString(flags.Config.LogoSeparator + seqReset)
@@ -192,7 +219,7 @@ func render() {
 		os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight-modulesNum) + "B")
 	}
 
-	os.Stdout.WriteString("\n")
+	os.Stdout.WriteString("\n\n")
 }
 
 func PrepareAndRender() {
