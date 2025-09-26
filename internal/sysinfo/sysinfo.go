@@ -2,6 +2,9 @@
 package sysinfo
 
 import (
+	"bufio"
+	"os"
+
 	"github.com/kourtnet/dummyfetch/internal/entities"
 	"github.com/kourtnet/dummyfetch/internal/flags"
 )
@@ -68,11 +71,7 @@ func Fetch() error {
 	return nil
 }
 
-func FetchLogo() error {
-	if flags.Config.LogoName != "" {
-		return nil
-	}
-
+func fetchAutoLogo() error {
 	distroName, err := entities.GetDistro()
 	if err != nil {
 		return err
@@ -81,7 +80,56 @@ func FetchLogo() error {
 	if _, ok := entities.LogosMap[distroName]; ok {
 		flags.Config.LogoName = distroName
 	} else {
-		flags.Config.LogoName = entities.BasicLogoName
+		flags.Config.LogoName = entities.DefaultLogoName
+	}
+
+	return nil
+}
+
+func fetchFileLogo() error {
+	file, err := os.Open(flags.Config.LogoName)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	ascii := []string{}
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		ascii = append(ascii, string(scanner.Text()))
+	}
+
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
+
+	customLogo := entities.LogosMap[entities.CustomName]
+	customLogo.Logo = ascii
+
+	entities.LogosMap[entities.CustomName] = customLogo
+	flags.Config.LogoName = entities.CustomName
+
+	return nil
+}
+
+func FetchLogo() error {
+	logoName := flags.Config.LogoName
+	if _, ok := entities.LogosMap[logoName]; ok && logoName != entities.CustomName {
+		return nil
+	}
+
+	if logoName == entities.AutoName {
+		if err := fetchAutoLogo(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if err := fetchFileLogo(); err != nil {
+		return err
 	}
 
 	return nil

@@ -11,9 +11,10 @@ const (
 	UbuntuName = "ubuntu"
 	TuxName    = "tux"
 	CustomName = "custom"
+	AutoName   = "auto"
 )
 
-const BasicLogoName = TuxName
+const DefaultLogoName = TuxName
 
 var LogosMap = map[string]LogoInfo{
 	ArchName: {
