@@ -3,7 +3,9 @@ package render
 
 import (
 	"fmt"
+	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/kourtnet/dummyfetch/internal/entities"
@@ -161,30 +163,32 @@ func prepare() error {
 	return nil
 }
 
+func renderLogo() {
+	logoJoined := strings.Join(entities.LogosMap[flags.Config.LogoName].Logo, "\n")
+	os.Stdout.WriteString(logoJoined)
+}
+
 func render() {
-	logo := entities.LogosMap[flags.Config.LogoName]
-	modules := flags.Config.Modules
+	renderLogo()
 
-	maxLen := max(len(logo.Logo), len(modules))
+	logoHeight := len(entities.LogosMap[flags.Config.LogoName].Logo)
+	os.Stdout.WriteString("\033[0m\033[" + strconv.Itoa(logoHeight-1) + "A")
 
-	for i := range maxLen {
-		if i < len(logo.Logo) {
-			fmt.Print(logo.Logo[i])
-		} else {
-			fmt.Print(logo.BlankRow)
-		}
+	textColor := entities.LogosMap[flags.Config.LogoName].TextColor
+	for _, module := range flags.Config.Modules {
+		// TODO: ADD MODULE SEPARATOR VAR AND FLAG
+		os.Stdout.WriteString(flags.Config.Separator)
+		os.Stdout.WriteString("\033[" + strconv.Itoa(textColor) + "m" + module.Title + "\033[0m")
+		os.Stdout.WriteString(": " + module.Arg)
 
-		fmt.Print(flags.Config.Separator)
-
-		if i < len(modules) {
-			title := modules[i].Title
-
-			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, title)
-			fmt.Printf(": %s\n", modules[i].Arg)
-		} else {
-			fmt.Println()
-		}
+		os.Stdout.WriteString("\033[1B\r" + entities.LogosMap[flags.Config.LogoName].BlankRow)
 	}
+
+	modulesNum := len(flags.Config.Modules)
+	if logoHeight > modulesNum {
+		os.Stdout.WriteString("\033[" + strconv.Itoa(logoHeight-modulesNum) + "B")
+	}
+	os.Stdout.WriteString("\n")
 }
 
 func PrepareAndRender() {
