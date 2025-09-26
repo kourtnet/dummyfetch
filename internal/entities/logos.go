@@ -25,7 +25,7 @@ var LogosMap = map[string]LogoInfo{
 			" \033[34m/ .\\ \\\033[0m ",
 			"\033[34m/.'  '.\\\033[0m",
 		},
-		BlankRow: "        ",
+		BlankRow: "\x1b[8C",
 	},
 
 	UbuntuName: {
@@ -36,7 +36,7 @@ var LogosMap = map[string]LogoInfo{
 			" \033[33m\\     \033[31m/\033[0m",
 			"   \033[31m--\033[33m( )\033[0m",
 		},
-		BlankRow: "        ",
+		BlankRow: "\x1b[8C",
 	},
 
 	TuxName: {
@@ -47,7 +47,7 @@ var LogosMap = map[string]LogoInfo{
 			"  /\033[33mv \033[37m\\\033[0m  ",
 			" \033[33m(\\\033[37m_^\033[33m/)\033[0m ",
 		},
-		BlankRow: "        ",
+		BlankRow: "\x1b[8C",
 	},
 	CustomName: {
 		TextColor: 37,
