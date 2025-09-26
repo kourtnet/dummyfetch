@@ -9,11 +9,7 @@ import (
 )
 
 func main() {
-	err := flags.Parse()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	flags.Parse()
 
 	if err := sysinfo.Fetch(); err != nil {
 		fmt.Println(err)

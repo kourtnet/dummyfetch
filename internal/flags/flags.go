@@ -11,13 +11,16 @@ import (
 	"github.com/kourtnet/dummyfetch/internal/entities"
 )
 
-func Parse() error {
+func Parse() {
 	flag.Func("module", "define a module to print in a form \"title\":\"module\" or just \"module\"", addModule)
 	flag.Func("print", "define a string to print", addPrint)
+
 	flag.Func("distro", "define distro logo to print. Use already predefined name or path to a text file with custom logo in it", setDistroLogo)
 
+	flag.Func("variable", "define a style variable to use in modules formatting", addVar)
+	flag.Func("var", "--variable alias", addVar)
+
 	flag.Parse()
-	return nil
 }
 
 type Module struct {
@@ -29,7 +32,13 @@ type Module struct {
 var Config = struct {
 	Modules  []Module
 	LogoName string
+	Vars     []string
 }{}
+
+func addVar(str string) error {
+	Config.Vars = append(Config.Vars, str)
+	return nil
+}
 
 func addModule(str string) error {
 	const errStr = "unknown module name: %s"
