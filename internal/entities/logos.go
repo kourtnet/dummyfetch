@@ -1,7 +1,7 @@
 package entities
 
 type LogoInfo struct {
-	TextColor int
+	TextColor string // field is string type in order not to waste time for strconv.Itoa at runtime
 	Logo      []string
 	BlankRow  string
 }
@@ -18,18 +18,18 @@ const DefaultLogoName = TuxName
 
 var LogosMap = map[string]LogoInfo{
 	ArchName: {
-		TextColor: 34,
+		TextColor: "34",
 		Logo: []string{
-			"   \033[34m/\\\033[0m   ",
-			"  \033[34m/\\ \\\033[0m  ",
-			" \033[34m/ .\\ \\\033[0m ",
-			"\033[34m/.'  '.\\\033[0m",
+			"   \033[34m/\\   ",
+			"  /\\ \\  ",
+			" / .\\ \\ ",
+			"/.'  '.\\",
 		},
 		BlankRow: "\x1b[8C",
 	},
 
 	UbuntuName: {
-		TextColor: 31,
+		TextColor: "31",
 		Logo: []string{
 			"  \033[33m/\033[31m--( )",
 			"( )    |",
@@ -40,16 +40,16 @@ var LogosMap = map[string]LogoInfo{
 	},
 
 	TuxName: {
-		TextColor: 37,
+		TextColor: "97",
 		Logo: []string{
-			"   \033[37m.-,\033[0m  ",
-			"   \033[37moo\033[37m|\033[0m  ",
-			"  /\033[33mv \033[37m\\\033[0m  ",
-			" \033[33m(\\\033[37m_^\033[33m/)\033[0m ",
+			"   \033[37m.-,  ",
+			"   oo|  ",
+			"  /\033[33mv \033[37m\\  ",
+			" \033[33m(\\\033[37m_^\033[33m/) ",
 		},
 		BlankRow: "\x1b[8C",
 	},
 	CustomName: {
-		TextColor: 37,
+		TextColor: "97",
 	},
 }

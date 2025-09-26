@@ -2,7 +2,6 @@
 package render
 
 import (
-	"fmt"
 	"os"
 	"regexp"
 	"strconv"
@@ -11,6 +10,11 @@ import (
 	"github.com/kourtnet/dummyfetch/internal/entities"
 	"github.com/kourtnet/dummyfetch/internal/flags"
 	"github.com/kourtnet/dummyfetch/internal/sysinfo"
+)
+
+const (
+	seqStart = "\033["
+	seqReset = "\033[0m"
 )
 
 var styleVars = map[string]string{
@@ -69,17 +73,15 @@ func prepareStr(str string) string {
 }
 
 func countLogoLength() {
-	const format = "\x1b[%dC"
-
 	logo := entities.LogosMap[entities.CustomName]
 
 	if len(entities.LogosMap[entities.CustomName].Logo) == 0 {
-		logo.BlankRow = fmt.Sprintf(format, 0)
+		logo.BlankRow = seqStart + "0" + "C"
 	} else {
 		clearRow := styleVarRegex.ReplaceAllString(logo.Logo[0], "")
 		length := len([]rune(clearRow))
 
-		logo.BlankRow = fmt.Sprintf(format, length)
+		logo.BlankRow = seqStart + strconv.Itoa(length) + "C"
 	}
 
 	entities.LogosMap[entities.CustomName] = logo
@@ -145,6 +147,9 @@ func prepareModules() error {
 			flags.Config.Modules[i].Title = title
 		}
 
+		textColor := entities.LogosMap[flags.Config.LogoName].TextColor
+		flags.Config.Modules[i].Title = "\033[" + textColor + "m" + flags.Config.Modules[i].Title
+
 		flags.Config.Modules[i].Arg = strTmp
 	}
 
@@ -152,48 +157,47 @@ func prepareModules() error {
 }
 
 func prepare() error {
-	if err := prepareModules(); err != nil {
+	if err := prepareLogo(); err != nil {
 		return err
 	}
 
-	if err := prepareLogo(); err != nil {
+	if err := prepareModules(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func renderLogo() {
-	logoJoined := strings.Join(entities.LogosMap[flags.Config.LogoName].Logo, "\n")
-	os.Stdout.WriteString(logoJoined)
-}
-
 func render() {
-	renderLogo()
+	logoJoined := strings.Join(entities.LogosMap[flags.Config.LogoName].Logo, "\n")
+	os.Stdout.WriteString(logoJoined + seqReset)
 
 	logoHeight := len(entities.LogosMap[flags.Config.LogoName].Logo)
-	os.Stdout.WriteString("\033[0m\033[" + strconv.Itoa(logoHeight-1) + "A")
+	os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight-1) + "A")
 
-	textColor := entities.LogosMap[flags.Config.LogoName].TextColor
 	for _, module := range flags.Config.Modules {
-		// TODO: ADD MODULE SEPARATOR VAR AND FLAG
-		os.Stdout.WriteString(flags.Config.Separator)
-		os.Stdout.WriteString("\033[" + strconv.Itoa(textColor) + "m" + module.Title + "\033[0m")
-		os.Stdout.WriteString(": " + module.Arg)
+		os.Stdout.WriteString(flags.Config.LogoSeparator + seqReset)
 
-		os.Stdout.WriteString("\033[1B\r" + entities.LogosMap[flags.Config.LogoName].BlankRow)
+		os.Stdout.WriteString(module.Title + seqReset)
+
+		os.Stdout.WriteString(flags.Config.ModuleSeparator + seqReset)
+
+		os.Stdout.WriteString(module.Arg + seqReset)
+
+		os.Stdout.WriteString(seqStart + "1B\r" + entities.LogosMap[flags.Config.LogoName].BlankRow)
 	}
 
 	modulesNum := len(flags.Config.Modules)
 	if logoHeight > modulesNum {
-		os.Stdout.WriteString("\033[" + strconv.Itoa(logoHeight-modulesNum) + "B")
+		os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight-modulesNum) + "B")
 	}
+
 	os.Stdout.WriteString("\n")
 }
 
 func PrepareAndRender() {
 	if err := prepare(); err != nil {
-		fmt.Println(err)
+		os.Stdout.WriteString(err.Error() + "\n")
 		return
 	}
 

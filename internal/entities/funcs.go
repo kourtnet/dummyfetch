@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -66,7 +65,7 @@ func getKernel() (string, error) {
 
 func getShell() (string, error) {
 	shellPath := getEnv("SHELL")
-	shell := filepath.Base(shellPath)
+	shell := shellPath[strings.LastIndex(shellPath, "/")+1:]
 
 	return shell, nil
 }
@@ -142,8 +141,4 @@ func getPaletteBg() (string, error) {
 func getPaletteFg() (string, error) {
 	output := "\033[2D\033[90m███\033[91m███\033[92m███\033[93m███\033[94m███\033[95m███\033[96m███\033[97m███\033[0m"
 	return output, nil
-}
-
-func getPrint() (string, error) {
-	return "\033[2D ", nil
 }

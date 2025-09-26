@@ -15,7 +15,9 @@ const (
 	UptimeName    = "uptime"
 	PaletteBgName = "palette_bg"
 	PaletteFgName = "palette_fg"
-	PrintName     = "print"
+
+	DefaultLogoSeparator   = "  "
+	DefaultModuleSeparator = ": "
 )
 
 var ArgsMap = map[string]Arg{
@@ -51,10 +53,4 @@ var ArgsMap = map[string]Arg{
 	PaletteFgName: {
 		Command: getPaletteFg,
 	},
-
-	PrintName: {
-		Command: getPrint,
-	},
 }
-
-const DefaultSeparator = "  "

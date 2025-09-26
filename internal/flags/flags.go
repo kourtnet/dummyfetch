@@ -18,8 +18,11 @@ func Parse() {
 
 	flag.StringVar(&Config.LogoName, "distro", entities.AutoName, "define distro logo to print. Use already predefined name or path to a text file with custom logo in it")
 
-	flag.Func("separator", "define separator between logo and modules", setSeparator)
-	flag.Func("sep", "-separator alias", setSeparator)
+	flag.Func("logo_separator", "define separator between logo and modules", setLogoSeparator)
+	flag.Func("logo_sep", "-separator alias", setLogoSeparator)
+
+	flag.Func("module_separator", "define separator between module title and contents", setModuleSeparator)
+	flag.Func("mod_sep", "-module_separator alias", setModuleSeparator)
 
 	flag.Parse()
 
@@ -42,18 +45,28 @@ type Module struct {
 }
 
 var Config = struct {
-	Modules   []Module
-	LogoName  string
-	Vars      map[string]string
-	Separator string
+	Modules         []Module
+	LogoName        string
+	Vars            map[string]string
+	LogoSeparator   string
+	ModuleSeparator string
 }{
-	Vars:      map[string]string{},
-	Separator: entities.DefaultSeparator,
+	Vars:            map[string]string{},
+	LogoSeparator:   entities.DefaultLogoSeparator,
+	ModuleSeparator: entities.DefaultModuleSeparator,
 }
 
-func setSeparator(str string) error {
-	if Config.Separator == entities.DefaultSeparator {
-		Config.Separator = str
+func setLogoSeparator(str string) error {
+	if Config.LogoSeparator == entities.DefaultLogoSeparator {
+		Config.LogoSeparator = str
+	}
+
+	return nil
+}
+
+func setModuleSeparator(str string) error {
+	if Config.ModuleSeparator == entities.DefaultModuleSeparator {
+		Config.ModuleSeparator = str
 	}
 
 	return nil
