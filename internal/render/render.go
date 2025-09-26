@@ -8,6 +8,7 @@ import (
 
 	"github.com/kourtnet/dummyfetch/internal/entities"
 	"github.com/kourtnet/dummyfetch/internal/flags"
+	"github.com/kourtnet/dummyfetch/internal/sysinfo"
 )
 
 var styleVars = map[string]string{
@@ -65,29 +66,85 @@ func prepareStr(str string) string {
 	return res
 }
 
-func prepareLogo() {
+func prepareLogo() error {
+	if err := sysinfo.FetchLogo(); err != nil {
+		return err
+	}
+
 	if flags.Config.LogoName != entities.CustomName {
-		return
+		return nil
 	}
 
 	for i, str := range entities.LogosMap[entities.CustomName].Logo {
 		entities.LogosMap[entities.CustomName].Logo[i] = prepareStr(str)
 	}
+
+	return nil
 }
 
-func prepareModules() {
+func prepareArg(str string) (string, string, error) {
+	str = prepareStr(str)
+	var title string
+	var err error
+	res := styleVarRegex.ReplaceAllStringFunc(str, func(match string) string {
+		argName := strings.TrimPrefix(strings.TrimSuffix(match, "}"), "${")
+
+		var argContents string
+		argContents, err = sysinfo.FetchArg(argName)
+		if err != nil {
+			return ""
+		}
+
+		if title == "" {
+			title = entities.ArgsMap[argName].DefaultTitle
+		}
+
+		return argContents
+	})
+
+	if err != nil {
+		return "", "", err
+	}
+
+	return res, title, nil
+}
+
+func prepareModules() error {
 	for i, mod := range flags.Config.Modules {
 		flags.Config.Modules[i].Title = prepareStr(mod.Title)
+
+		strTmp, title, err := prepareArg(mod.Arg)
+		if err != nil {
+			return err
+		}
+
+		if flags.Config.Modules[i].Title == "" {
+			flags.Config.Modules[i].Title = title
+		}
+
+		flags.Config.Modules[i].Arg = strTmp
 	}
+
+	return nil
 }
 
-func prepare() {
-	prepareModules()
-	prepareLogo()
+func prepare() error {
+	if err := prepareModules(); err != nil {
+		return err
+	}
+
+	if err := prepareLogo(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Render() {
-	prepare()
+	if err := prepare(); err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	logo := entities.LogosMap[flags.Config.LogoName]
 
@@ -103,15 +160,10 @@ func Render() {
 		fmt.Print("  ")
 
 		if i < len(flags.Config.Modules) {
-			arg := entities.ArgsMap[flags.Config.Modules[i].Arg]
+			title := flags.Config.Modules[i].Title
 
-			titleToPrint := arg.DefaultTitle
-			if flags.Config.Modules[i].IsTitleSet {
-				titleToPrint = flags.Config.Modules[i].Title
-			}
-
-			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, titleToPrint)
-			fmt.Printf(": %s\n", arg.Contents)
+			fmt.Printf("\033[%dm%s\033[0m", logo.TextColor, title)
+			fmt.Printf(": %s\n", flags.Config.Modules[i].Arg)
 		} else {
 			fmt.Println()
 		}

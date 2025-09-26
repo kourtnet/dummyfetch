@@ -4,7 +4,6 @@ package flags
 import (
 	"bufio"
 	"flag"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -14,7 +13,7 @@ import (
 
 func Parse() {
 	flag.Func("module", "define a module to print in a form \"title\":\"module\" or just \"module\"", addModule)
-	flag.Func("print", "define a string to print", addPrint)
+	flag.Func("mod", "-module alias", addModule)
 
 	flag.Func("distro", "define distro logo to print. Use already predefined name or path to a text file with custom logo in it", setDistroLogo)
 
@@ -60,8 +59,6 @@ func addVar(str string) error {
 }
 
 func addModule(str string) error {
-	const errStr = "unknown module name: %s"
-
 	str, err := unescapeStr(str)
 	if err != nil {
 		return err
@@ -69,28 +66,19 @@ func addModule(str string) error {
 
 	colonIndex := strings.LastIndex(str, ":")
 
+	var title, arg string
+	var isTitleSet bool
+
 	if colonIndex != -1 {
-		title := str[:colonIndex]
-		arg := str[colonIndex+1:]
-
-		if _, ok := entities.ArgsMap[arg]; !ok {
-			return fmt.Errorf(errStr, arg)
-		}
-
-		Config.Modules = append(Config.Modules, Module{IsTitleSet: true, Title: title, Arg: arg})
-		return nil
+		title = str[:colonIndex]
+		arg = str[colonIndex+1:]
+		isTitleSet = true
+	} else {
+		arg = str
 	}
 
-	if _, ok := entities.ArgsMap[str]; !ok {
-		return fmt.Errorf(errStr, str)
-	}
-
-	Config.Modules = append(Config.Modules, Module{Arg: str})
+	Config.Modules = append(Config.Modules, Module{IsTitleSet: isTitleSet, Title: title, Arg: arg})
 	return nil
-}
-
-func addPrint(str string) error {
-	return addModule(str + ":print")
 }
 
 func setDistroLogo(str string) error {
@@ -101,7 +89,7 @@ func setDistroLogo(str string) error {
 
 	file, err := os.Open(str)
 	if err != nil {
-		return fmt.Errorf("unknown distro name or invalid filepath: %s", str)
+		return err
 	}
 
 	defer file.Close()
@@ -114,7 +102,7 @@ func setDistroLogo(str string) error {
 	}
 
 	if scanner.Err() != nil {
-		return fmt.Errorf("failed to read file with custom logo")
+		return scanner.Err()
 	}
 
 	customLogo := entities.LogosMap[entities.CustomName]

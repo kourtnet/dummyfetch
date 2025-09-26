@@ -6,6 +6,28 @@ import (
 	"github.com/kourtnet/dummyfetch/internal/flags"
 )
 
+// TODO: rewrite this crap
+func FetchArg(argName string) (string, error) {
+	arg, ok := entities.ArgsMap[argName]
+	if !ok {
+		return argName, nil
+	}
+
+	if arg.Contents != "" {
+		return arg.Contents, nil
+	}
+
+	var err error
+	arg.Contents, err = arg.Command()
+	if err != nil {
+		return "", err
+	}
+
+	entities.ArgsMap[argName] = arg
+
+	return arg.Contents, nil
+}
+
 func fetchArg(argName string) error {
 	var err error
 
