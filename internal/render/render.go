@@ -48,7 +48,14 @@ var styleVarRegex = regexp.MustCompile(`\$\{([^}]+)\}`)
 func prepareStr(str string) string {
 	res := styleVarRegex.ReplaceAllStringFunc(str, func(match string) string {
 		varName := strings.TrimPrefix(strings.TrimSuffix(match, "}"), "${")
+
+		// predefined style vars
 		if ansi, ok := styleVars[varName]; ok {
+			return ansi
+		}
+
+		// user defined vars
+		if ansi, ok := flags.Config.Vars[varName]; ok {
 			return ansi
 		}
 

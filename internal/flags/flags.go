@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/kourtnet/dummyfetch/internal/entities"
@@ -17,8 +18,8 @@ func Parse() {
 
 	flag.Func("distro", "define distro logo to print. Use already predefined name or path to a text file with custom logo in it", setDistroLogo)
 
-	flag.Func("variable", "define a style variable to use in modules formatting", addVar)
-	flag.Func("var", "--variable alias", addVar)
+	flag.Func("variable", "define a style variable to use in modules formatting. Predefined variables do not not work here, so as user variables", addVar)
+	flag.Func("var", "-variable alias", addVar)
 
 	flag.Parse()
 }
@@ -32,16 +33,39 @@ type Module struct {
 var Config = struct {
 	Modules  []Module
 	LogoName string
-	Vars     []string
-}{}
+	Vars     map[string]string
+}{
+	Vars: map[string]string{},
+}
+
+func unescapeStr(str string) (string, error) {
+	quoted := `"` + str + `"`
+
+	unquoted, err := strconv.Unquote(quoted)
+	if err != nil {
+		return "", err
+	}
+
+	return unquoted, nil
+}
 
 func addVar(str string) error {
-	Config.Vars = append(Config.Vars, str)
+	str, err := unescapeStr(str)
+	if err != nil {
+		return err
+	}
+
+	Config.Vars[strconv.Itoa(len(Config.Vars))] = str
 	return nil
 }
 
 func addModule(str string) error {
 	const errStr = "unknown module name: %s"
+
+	str, err := unescapeStr(str)
+	if err != nil {
+		return err
+	}
 
 	colonIndex := strings.LastIndex(str, ":")
 
