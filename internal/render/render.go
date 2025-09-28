@@ -92,7 +92,7 @@ func prepareMoveVar(str string) (string, bool) {
 	return str, false
 }
 
-func prepareStr(str string) string {
+func preparePredefinedVars(str string) string {
 	res := styleVarRegex.ReplaceAllStringFunc(str, func(match string) string {
 		varName := strings.TrimPrefix(strings.TrimSuffix(match, "}"), "${")
 
@@ -101,12 +101,24 @@ func prepareStr(str string) string {
 			return ansi
 		}
 
-		// user defined vars
-		if ansi, ok := flags.Config.Vars[varName]; ok {
+		// predefined move vars
+		if ansi, ok := prepareMoveVar(varName); ok {
 			return ansi
 		}
 
-		if ansi, ok := prepareMoveVar(varName); ok {
+		return match
+	})
+
+	return res
+}
+
+func prepareStr(str string) string {
+	str = preparePredefinedVars(str)
+	res := styleVarRegex.ReplaceAllStringFunc(str, func(match string) string {
+		varName := strings.TrimPrefix(strings.TrimSuffix(match, "}"), "${")
+
+		// user defined vars
+		if ansi, ok := flags.Config.Vars[varName]; ok {
 			return ansi
 		}
 
@@ -192,7 +204,7 @@ func prepareModules() error {
 		}
 
 		textColor := entities.LogosMap[flags.Config.LogoName].TextColor
-		flags.Config.Modules[i].Title = "\033[" + textColor + "m" + flags.Config.Modules[i].Title
+		flags.Config.Modules[i].Title = seqStart + textColor + "m" + flags.Config.Modules[i].Title
 
 		flags.Config.Modules[i].Arg = strTmp
 	}
@@ -200,7 +212,22 @@ func prepareModules() error {
 	return nil
 }
 
+func prepareUserVars() {
+	for k, v := range flags.Config.Vars {
+		flags.Config.Vars[k] = preparePredefinedVars(v)
+	}
+}
+
+func prepareSeparators() {
+	flags.Config.LogoSeparator = prepareStr(flags.Config.LogoSeparator)
+	flags.Config.ModuleSeparator = prepareStr(flags.Config.ModuleSeparator)
+}
+
 func prepare() error {
+	prepareUserVars()
+
+	prepareSeparators()
+
 	if err := prepareLogo(); err != nil {
 		return err
 	}
