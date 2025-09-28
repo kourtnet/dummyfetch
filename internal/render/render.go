@@ -55,18 +55,42 @@ var styleVars = map[string]string{
 	"bglw":   "\033[107m", // white
 
 	// Text styles
-	"b": "\033[1m", // bold
-	"d": "\033[2m", // dim
-	"i": "\033[3m", // italic
-	"u": "\033[4m", // underline
-	"r": "\033[7m", // reverse
-	"s": "\033[9m", // strikethrough
+	"b":  "\033[1m",  // bold
+	"d":  "\033[2m",  // dim
+	"i":  "\033[3m",  // italic
+	"u":  "\033[4m",  // underline
+	"du": "\033[21m", // double underline
+	"r":  "\033[7m",  // reverse
+	"s":  "\033[9m",  // strikethrough
 
 	// Reset all styles
 	"reset": "\033[0m",
 }
 
-var styleVarRegex = regexp.MustCompile(`\$\{([^}]+)\}`)
+// TODO: proper down move handling
+var moveVars = map[string]string{
+	"up":    "A",
+	"down":  "B",
+	"left":  "D",
+	"right": "C",
+}
+
+var (
+	styleVarRegex = regexp.MustCompile(`\$\{([^}]+)\}`)
+	moveVarRegex  = regexp.MustCompile(`^(up|down|left|right)(\d+)$`)
+)
+
+func prepareMoveVar(str string) (string, bool) {
+	if match := moveVarRegex.FindStringSubmatch(str); match != nil {
+		dir, n := match[1], match[2]
+
+		if v, ok := moveVars[dir]; ok {
+			return seqStart + n + v, true
+		}
+	}
+
+	return str, false
+}
 
 func prepareStr(str string) string {
 	res := styleVarRegex.ReplaceAllStringFunc(str, func(match string) string {
@@ -79,6 +103,10 @@ func prepareStr(str string) string {
 
 		// user defined vars
 		if ansi, ok := flags.Config.Vars[varName]; ok {
+			return ansi
+		}
+
+		if ansi, ok := prepareMoveVar(varName); ok {
 			return ansi
 		}
 
@@ -196,11 +224,10 @@ func render() {
 			os.Stdout.WriteString("\n")
 		}
 		os.Stdout.WriteString(seqStart + strconv.Itoa(modsNum-1) + "A")
+		os.Stdout.WriteString(entities.LogosMap[flags.Config.LogoName].BlankRow)
 	} else {
 		os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight-1) + "A")
 	}
-
-	os.Stdout.WriteString(entities.LogosMap[flags.Config.LogoName].BlankRow)
 
 	for _, module := range flags.Config.Modules {
 		os.Stdout.WriteString(flags.Config.LogoSeparator + seqReset)
