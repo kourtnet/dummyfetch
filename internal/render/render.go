@@ -67,7 +67,6 @@ var styleVars = map[string]string{
 	"reset": "\033[0m",
 }
 
-// TODO: proper down move handling
 var moveVars = map[string]string{
 	"up":    "A",
 	"down":  "B",
@@ -80,6 +79,7 @@ var (
 	moveVarRegex  = regexp.MustCompile(`^(up|down|left|right)(\d+)$`)
 )
 
+// TODO: REWRITE MESSY PREPARE LOGIC
 func prepareMoveVar(str string) (string, bool) {
 	if match := moveVarRegex.FindStringSubmatch(str); match != nil {
 		dir, n := match[1], match[2]
@@ -239,10 +239,27 @@ func prepare() error {
 	return nil
 }
 
-func render() {
+func renderModule(module flags.Module) {
+	os.Stdout.WriteString(flags.Config.LogoSeparator + seqReset)
+
+	os.Stdout.WriteString(module.Title + seqReset)
+
+	os.Stdout.WriteString(flags.Config.ModuleSeparator + seqReset)
+
+	os.Stdout.WriteString(module.Arg + seqReset)
+
+	os.Stdout.WriteString(seqStart + "1B\r" + entities.LogosMap[flags.Config.LogoName].BlankRow)
+}
+
+func renderLogo() {
 	logoJoined := strings.Join(entities.LogosMap[flags.Config.LogoName].Logo, "\n")
 	os.Stdout.WriteString(logoJoined + seqReset)
+}
 
+func render() {
+	renderLogo()
+
+	// TODO: DELETE ALL THIS CRAP AFTER A PROPER BUFFER FILLER IS DONE
 	logoHeight := len(entities.LogosMap[flags.Config.LogoName].Logo)
 	modsNum := len(flags.Config.Modules)
 
@@ -257,17 +274,10 @@ func render() {
 	}
 
 	for _, module := range flags.Config.Modules {
-		os.Stdout.WriteString(flags.Config.LogoSeparator + seqReset)
-
-		os.Stdout.WriteString(module.Title + seqReset)
-
-		os.Stdout.WriteString(flags.Config.ModuleSeparator + seqReset)
-
-		os.Stdout.WriteString(module.Arg + seqReset)
-
-		os.Stdout.WriteString(seqStart + "1B\r" + entities.LogosMap[flags.Config.LogoName].BlankRow)
+		renderModule(module)
 	}
 
+	// TODO: WRITE A PROPER BUFFER FILLER
 	modulesNum := len(flags.Config.Modules)
 	if logoHeight > modulesNum {
 		os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight-modulesNum) + "B")
