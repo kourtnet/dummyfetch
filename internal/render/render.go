@@ -19,6 +19,7 @@ const (
 
 var styleVars = map[string]string{
 	// Foreground colors
+	// dark
 	"fgdbla": "\033[30m", // black
 	"fgdr":   "\033[31m", // red
 	"fgdg":   "\033[32m", // green
@@ -27,6 +28,7 @@ var styleVars = map[string]string{
 	"fgdm":   "\033[35m", // magenta
 	"fgdc":   "\033[36m", // cyan
 	"fgdw":   "\033[37m", // white
+	// light
 	"fglbla": "\033[90m", // black
 	"fglr":   "\033[91m", // red
 	"fglg":   "\033[92m", // green
@@ -37,6 +39,7 @@ var styleVars = map[string]string{
 	"fglw":   "\033[97m", // white
 
 	// Background colors
+	// dark
 	"bgdbla": "\033[40m",  // black
 	"bgdr":   "\033[41m",  // red
 	"bgdg":   "\033[42m",  // green
@@ -45,6 +48,7 @@ var styleVars = map[string]string{
 	"bgdm":   "\033[45m",  // magenta
 	"bgdc":   "\033[46m",  // cyan
 	"bgdw":   "\033[107m", // white
+	// light
 	"bglbla": "\033[100m", // black
 	"bglr":   "\033[101m", // red
 	"bglg":   "\033[102m", // green
