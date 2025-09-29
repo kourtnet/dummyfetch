@@ -79,31 +79,49 @@ var (
 	moveVarRegex  = regexp.MustCompile(`^(up|down|left|right)(\d+)$`)
 )
 
-// TODO: REWRITE MESSY PREPARE LOGIC
-func prepareMoveVar(str string) (string, bool) {
-	if match := moveVarRegex.FindStringSubmatch(str); match != nil {
-		dir, n := match[1], match[2]
+/*
+* 1. prepare user vars (predefined) DONE
+* 2. prepare logo (fetch, predef vars, user vars)
+* 3. prepare separators (predef vars, user vars)
+* 4. prepare modules (fetch, predef vars, user vars)
+* */
 
-		if v, ok := moveVars[dir]; ok {
-			return seqStart + n + v, true
-		}
+func prepare() error {
+	prepareUserVars()
+
+	prepareLogo()
+
+	prepareSeparators()
+
+	if err := prepareModules(); err != nil {
+		return err
 	}
 
-	return str, false
+	return nil
+}
+
+func prepareUserVars() {
+	for k, v := range flags.Config.Vars {
+		flags.Config.Vars[k] = preparePredefinedVars(v)
+	}
 }
 
 func preparePredefinedVars(str string) string {
 	res := styleVarRegex.ReplaceAllStringFunc(str, func(match string) string {
 		varName := strings.TrimPrefix(strings.TrimSuffix(match, "}"), "${")
 
-		// predefined style vars
+		// style vars
 		if ansi, ok := styleVars[varName]; ok {
 			return ansi
 		}
 
-		// predefined move vars
-		if ansi, ok := prepareMoveVar(varName); ok {
-			return ansi
+		// move vars
+		if moveMatch := moveVarRegex.FindStringSubmatch(str); moveMatch != nil {
+			direction, offset := moveMatch[1], moveMatch[2]
+
+			if directionLetter, ok := moveVars[direction]; ok {
+				return seqStart + offset + directionLetter
+			}
 		}
 
 		return match
@@ -212,32 +230,26 @@ func prepareModules() error {
 	return nil
 }
 
-func prepareUserVars() {
-	for k, v := range flags.Config.Vars {
-		flags.Config.Vars[k] = preparePredefinedVars(v)
-	}
-}
-
 func prepareSeparators() {
 	flags.Config.LogoSeparator = prepareStr(flags.Config.LogoSeparator)
 	flags.Config.ModuleSeparator = prepareStr(flags.Config.ModuleSeparator)
 }
 
-func prepare() error {
-	prepareUserVars()
-
-	prepareSeparators()
-
-	if err := prepareLogo(); err != nil {
-		return err
-	}
-
-	if err := prepareModules(); err != nil {
-		return err
-	}
-
-	return nil
-}
+//func prepare() error {
+//	prepareUserVars()
+//
+//	prepareSeparators()
+//
+//	if err := prepareLogo(); err != nil {
+//		return err
+//	}
+//
+//	if err := prepareModules(); err != nil {
+//		return err
+//	}
+//
+//	return nil
+//}
 
 func renderModule(module flags.Module) {
 	os.Stdout.WriteString(flags.Config.LogoSeparator + seqReset)
