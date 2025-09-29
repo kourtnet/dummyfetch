@@ -13,6 +13,8 @@ const (
 	ShellName     = "shell"
 	TerminalName  = "terminal"
 	UptimeName    = "uptime"
+	MemoryName    = "memory"
+	CPUName       = "cpu"
 	PaletteBgName = "palette_bg"
 	PaletteFgName = "palette_fg"
 
@@ -44,6 +46,16 @@ var ArgsMap = map[string]Arg{
 	UptimeName: {
 		DefaultTitle: "Uptime",
 		Command:      getUptime,
+	},
+
+	MemoryName: {
+		DefaultTitle: "Memory",
+		Command:      getMemory,
+	},
+
+	CPUName: {
+		DefaultTitle: "CPU",
+		Command:      getCPU,
 	},
 
 	PaletteBgName: {

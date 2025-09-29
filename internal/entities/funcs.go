@@ -3,6 +3,7 @@ package entities
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -131,6 +132,78 @@ func getUptime() (string, error) {
 	}
 
 	return strings.TrimSuffix(res, ", "), nil
+}
+
+func getMemory() (string, error) {
+	file, err := open("/proc/meminfo")
+	if err != nil {
+		return "", err
+	}
+
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	counter := 0
+	var memAvailable, memTotal int
+	for scanner.Scan() && counter < 2 {
+		strs := strings.Fields(scanner.Text())
+		if strs[0] == "MemTotal:" {
+			counter++
+
+			var err error
+			memTotal, err = strconv.Atoi(strs[1])
+			if err != nil {
+				return "", err
+			}
+		} else if strs[0] == "MemAvailable:" {
+			counter++
+
+			var err error
+			memAvailable, err = strconv.Atoi(strs[1])
+			if err != nil {
+				return "", err
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	memTotal /= 1024
+	memUsed := memTotal - memAvailable/1024
+
+	res := strconv.Itoa(memUsed) + " MiB / " + strconv.Itoa(memTotal) + " MiB"
+
+	return res, nil
+}
+
+func getCPU() (string, error) {
+	file, err := open("/proc/cpuinfo")
+	if err != nil {
+		return "", err
+	}
+
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	var res string
+	for scanner.Scan() {
+		strs := strings.Split(scanner.Text(), ":")
+
+		fmt.Println(strings.TrimSpace(strs[0]))
+		if strings.TrimSpace(strs[0]) == "model name" {
+			res = strings.TrimSpace(strs[1])
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return res, nil
 }
 
 func getPaletteBg() (string, error) {

@@ -36,6 +36,8 @@ var defaultArgs = []Module{
 	{Arg: "${" + entities.KernelName + "}"},
 	{Arg: "${" + entities.TerminalName + "}"},
 	{Arg: "${" + entities.UptimeName + "}"},
+	{Arg: "${" + entities.MemoryName + "}"},
+	{Arg: "${" + entities.CPUName + "}"},
 }
 
 type Module struct {
