@@ -79,9 +79,10 @@ var moveVars = map[string]string{
 }
 
 var (
-	ansiEscape    = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
-	styleVarRegex = regexp.MustCompile(`\$\{([^}]+)\}`)
-	moveVarRegex  = regexp.MustCompile(`^(up|down|left|right)(\d+)$`)
+	ansiEscapeRegex = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
+	styleVarRegex   = regexp.MustCompile(`\$\{([^}]+)\}`)
+	moveVarRegex    = regexp.MustCompile(`^(up|down|left|right)(\d+)$`)
+	moveEscapeRegex = regexp.MustCompile(`\x1b\[[0-9;]*[ABCDG]`)
 )
 
 func prepare() error {
@@ -130,6 +131,10 @@ func resolvePredefinedVars(str string) string {
 	return res
 }
 
+func removeOffsets(str string) string {
+	return moveEscapeRegex.ReplaceAllString(str, "")
+}
+
 // TODO: forbid move vars in logo
 func prepareLogo() error {
 	if err := sysinfo.FetchLogo(); err != nil {
@@ -144,6 +149,7 @@ func prepareLogo() error {
 	for i, str := range entities.LogosMap[entities.CustomName].Logo {
 		entities.LogosMap[entities.CustomName].Logo[i] = resolvePredefinedVars(str)
 		entities.LogosMap[entities.CustomName].Logo[i] = resolveUserVars(str)
+		entities.LogosMap[entities.CustomName].Logo[i] = removeOffsets(str)
 	}
 
 	setLogoOffset()
@@ -152,7 +158,7 @@ func prepareLogo() error {
 }
 
 func visibleRowLen(row string) int {
-	cleanRow := ansiEscape.ReplaceAllString(row, "")
+	cleanRow := ansiEscapeRegex.ReplaceAllString(row, "")
 	return len(cleanRow)
 }
 
