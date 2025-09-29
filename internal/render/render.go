@@ -189,21 +189,6 @@ func resolveUserVars(str string) string {
 	return res
 }
 
-//func countLogoLength() {
-//	logo := entities.LogosMap[entities.CustomName]
-//
-//	if len(entities.LogosMap[entities.CustomName].Logo) == 0 {
-//		logo.BlankRow = seqStart + "0" + "C"
-//	} else {
-//		clearRow := styleVarRegex.ReplaceAllString(logo.Logo[0], "")
-//		length := len([]rune(clearRow))
-//
-//		logo.BlankRow = seqStart + strconv.Itoa(length) + "C"
-//	}
-//
-//	entities.LogosMap[entities.CustomName] = logo
-//}
-
 // TODO: remake prepare arg and module funcs
 func prepareArg(str string) (string, string, error) {
 	str = resolvePredefinedVars(str)
@@ -266,22 +251,6 @@ func prepareSeparators() {
 	flags.Config.ModuleSeparator = resolveUserVars(flags.Config.ModuleSeparator)
 }
 
-//func prepare() error {
-//	prepareUserVars()
-//
-//	prepareSeparators()
-//
-//	if err := prepareLogo(); err != nil {
-//		return err
-//	}
-//
-//	if err := prepareModules(); err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}
-
 func renderModule(module flags.Module) {
 	os.Stdout.WriteString(seqStart + "1B\r" + entities.LogosMap[flags.Config.LogoName].BlankRow)
 
@@ -302,19 +271,9 @@ func renderLogo() {
 func render() {
 	renderLogo()
 
-	//	// TODO: DELETE ALL THIS CRAP AFTER A PROPER BUFFER FILLER IS DONE
+	// TODO: DELETE ALL THIS CRAP AFTER A PROPER BUFFER FILLER IS DONE
 	logoHeight := len(entities.LogosMap[flags.Config.LogoName].Logo)
-	//	modsNum := len(flags.Config.Modules)
-	//
-	//	if modsNum > logoHeight {
-	//		for range modsNum - logoHeight {
-	//			os.Stdout.WriteString("\n")
-	//		}
-	//		os.Stdout.WriteString(seqStart + strconv.Itoa(modsNum-1) + "A")
-	//		os.Stdout.WriteString(entities.LogosMap[flags.Config.LogoName].BlankRow)
-	//	} else {
 	os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight) + "A")
-	//	}
 
 	for _, module := range flags.Config.Modules {
 		renderModule(module)
