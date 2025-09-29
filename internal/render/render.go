@@ -79,21 +79,17 @@ var moveVars = map[string]string{
 }
 
 var (
+	ansiEscape    = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
 	styleVarRegex = regexp.MustCompile(`\$\{([^}]+)\}`)
 	moveVarRegex  = regexp.MustCompile(`^(up|down|left|right)(\d+)$`)
 )
 
-/*
-* 1. prepare user vars (predefined) DONE
-* 2. prepare logo (fetch, predef vars, user vars)
-* 3. prepare separators (predef vars, user vars)
-* 4. prepare modules (fetch, predef vars, user vars)
-* */
-
 func prepare() error {
 	prepareUserVars()
 
-	prepareLogo()
+	if err := prepareLogo(); err != nil {
+		return err
+	}
 
 	prepareSeparators()
 
@@ -106,11 +102,11 @@ func prepare() error {
 
 func prepareUserVars() {
 	for k, v := range flags.Config.Vars {
-		flags.Config.Vars[k] = preparePredefinedVars(v)
+		flags.Config.Vars[k] = resolvePredefinedVars(v)
 	}
 }
 
-func preparePredefinedVars(str string) string {
+func resolvePredefinedVars(str string) string {
 	res := styleVarRegex.ReplaceAllStringFunc(str, func(match string) string {
 		varName := strings.TrimPrefix(strings.TrimSuffix(match, "}"), "${")
 
@@ -134,12 +130,49 @@ func preparePredefinedVars(str string) string {
 	return res
 }
 
-func prepareStr(str string) string {
-	str = preparePredefinedVars(str)
+// TODO: forbid move vars in logo
+func prepareLogo() error {
+	if err := sysinfo.FetchLogo(); err != nil {
+		return err
+	}
+
+	// there's no need to prepare predefined logos
+	if flags.Config.LogoName != entities.CustomName {
+		return nil
+	}
+
+	for i, str := range entities.LogosMap[entities.CustomName].Logo {
+		entities.LogosMap[entities.CustomName].Logo[i] = resolvePredefinedVars(str)
+		entities.LogosMap[entities.CustomName].Logo[i] = resolveUserVars(str)
+	}
+
+	setLogoOffset()
+
+	return nil
+}
+
+func visibleRowLen(row string) int {
+	cleanRow := ansiEscape.ReplaceAllString(row, "")
+	return len(cleanRow)
+}
+
+func setLogoOffset() {
+	logo := entities.LogosMap[entities.CustomName]
+
+	maxLen := 0
+	for _, row := range logo.Logo {
+		maxLen = max(maxLen, visibleRowLen(row))
+	}
+
+	logo.BlankRow = seqStart + strconv.Itoa(maxLen) + "C"
+
+	entities.LogosMap[entities.CustomName] = logo
+}
+
+func resolveUserVars(str string) string {
 	res := styleVarRegex.ReplaceAllStringFunc(str, func(match string) string {
 		varName := strings.TrimPrefix(strings.TrimSuffix(match, "}"), "${")
 
-		// user defined vars
 		if ansi, ok := flags.Config.Vars[varName]; ok {
 			return ansi
 		}
@@ -150,41 +183,25 @@ func prepareStr(str string) string {
 	return res
 }
 
-func countLogoLength() {
-	logo := entities.LogosMap[entities.CustomName]
+//func countLogoLength() {
+//	logo := entities.LogosMap[entities.CustomName]
+//
+//	if len(entities.LogosMap[entities.CustomName].Logo) == 0 {
+//		logo.BlankRow = seqStart + "0" + "C"
+//	} else {
+//		clearRow := styleVarRegex.ReplaceAllString(logo.Logo[0], "")
+//		length := len([]rune(clearRow))
+//
+//		logo.BlankRow = seqStart + strconv.Itoa(length) + "C"
+//	}
+//
+//	entities.LogosMap[entities.CustomName] = logo
+//}
 
-	if len(entities.LogosMap[entities.CustomName].Logo) == 0 {
-		logo.BlankRow = seqStart + "0" + "C"
-	} else {
-		clearRow := styleVarRegex.ReplaceAllString(logo.Logo[0], "")
-		length := len([]rune(clearRow))
-
-		logo.BlankRow = seqStart + strconv.Itoa(length) + "C"
-	}
-
-	entities.LogosMap[entities.CustomName] = logo
-}
-
-func prepareLogo() error {
-	if err := sysinfo.FetchLogo(); err != nil {
-		return err
-	}
-
-	if flags.Config.LogoName != entities.CustomName {
-		return nil
-	}
-
-	countLogoLength()
-
-	for i, str := range entities.LogosMap[entities.CustomName].Logo {
-		entities.LogosMap[entities.CustomName].Logo[i] = prepareStr(str)
-	}
-
-	return nil
-}
-
+// TODO: remake prepare arg and module funcs
 func prepareArg(str string) (string, string, error) {
-	str = prepareStr(str)
+	str = resolvePredefinedVars(str)
+	str = resolveUserVars(str)
 
 	var title string
 	var err error
@@ -214,7 +231,8 @@ func prepareArg(str string) (string, string, error) {
 
 func prepareModules() error {
 	for i, mod := range flags.Config.Modules {
-		flags.Config.Modules[i].Title = prepareStr(mod.Title)
+		flags.Config.Modules[i].Title = resolvePredefinedVars(mod.Title)
+		flags.Config.Modules[i].Title = resolveUserVars(mod.Title)
 
 		strTmp, title, err := prepareArg(mod.Arg)
 		if err != nil {
@@ -235,8 +253,11 @@ func prepareModules() error {
 }
 
 func prepareSeparators() {
-	flags.Config.LogoSeparator = prepareStr(flags.Config.LogoSeparator)
-	flags.Config.ModuleSeparator = prepareStr(flags.Config.ModuleSeparator)
+	flags.Config.LogoSeparator = resolvePredefinedVars(flags.Config.LogoSeparator)
+	flags.Config.LogoSeparator = resolveUserVars(flags.Config.LogoSeparator)
+
+	flags.Config.ModuleSeparator = resolvePredefinedVars(flags.Config.ModuleSeparator)
+	flags.Config.ModuleSeparator = resolveUserVars(flags.Config.ModuleSeparator)
 }
 
 //func prepare() error {
@@ -256,6 +277,8 @@ func prepareSeparators() {
 //}
 
 func renderModule(module flags.Module) {
+	os.Stdout.WriteString(seqStart + "1B\r" + entities.LogosMap[flags.Config.LogoName].BlankRow)
+
 	os.Stdout.WriteString(flags.Config.LogoSeparator + seqReset)
 
 	os.Stdout.WriteString(module.Title + seqReset)
@@ -263,8 +286,6 @@ func renderModule(module flags.Module) {
 	os.Stdout.WriteString(flags.Config.ModuleSeparator + seqReset)
 
 	os.Stdout.WriteString(module.Arg + seqReset)
-
-	os.Stdout.WriteString(seqStart + "1B\r" + entities.LogosMap[flags.Config.LogoName].BlankRow)
 }
 
 func renderLogo() {
@@ -275,29 +296,27 @@ func renderLogo() {
 func render() {
 	renderLogo()
 
-	// TODO: DELETE ALL THIS CRAP AFTER A PROPER BUFFER FILLER IS DONE
+	//	// TODO: DELETE ALL THIS CRAP AFTER A PROPER BUFFER FILLER IS DONE
 	logoHeight := len(entities.LogosMap[flags.Config.LogoName].Logo)
-	modsNum := len(flags.Config.Modules)
-
-	if modsNum > logoHeight {
-		for range modsNum - logoHeight {
-			os.Stdout.WriteString("\n")
-		}
-		os.Stdout.WriteString(seqStart + strconv.Itoa(modsNum-1) + "A")
-		os.Stdout.WriteString(entities.LogosMap[flags.Config.LogoName].BlankRow)
-	} else {
-		os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight-1) + "A")
-	}
+	//	modsNum := len(flags.Config.Modules)
+	//
+	//	if modsNum > logoHeight {
+	//		for range modsNum - logoHeight {
+	//			os.Stdout.WriteString("\n")
+	//		}
+	//		os.Stdout.WriteString(seqStart + strconv.Itoa(modsNum-1) + "A")
+	//		os.Stdout.WriteString(entities.LogosMap[flags.Config.LogoName].BlankRow)
+	//	} else {
+	os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight) + "A")
+	//	}
 
 	for _, module := range flags.Config.Modules {
 		renderModule(module)
 	}
 
-	// TODO: WRITE A PROPER BUFFER FILLER
 	modulesNum := len(flags.Config.Modules)
-	if logoHeight > modulesNum {
-		os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight-modulesNum) + "B")
-	}
+	offset := logoHeight - modulesNum + len(flags.Config.LogoSeparator)
+	os.Stdout.WriteString(seqStart + strconv.Itoa(offset) + "B")
 
 	os.Stdout.WriteString("\n\n")
 }
