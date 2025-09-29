@@ -79,10 +79,13 @@ var moveVars = map[string]string{
 }
 
 var (
-	ansiEscapeRegex = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
-	styleVarRegex   = regexp.MustCompile(`\$\{([^}]+)\}`)
-	moveVarRegex    = regexp.MustCompile(`^(up|down|left|right)(\d+)$`)
+	// regexes for escape sequences
+	escapeRegex     = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
 	moveEscapeRegex = regexp.MustCompile(`\x1b\[[0-9;]*[ABCDG]`)
+
+	// regexes for dummyfetch variables
+	styleVarRegex = regexp.MustCompile(`\$\{([^}]+)\}`)
+	moveVarRegex  = regexp.MustCompile(`^(up|down|left|right)(\d+)$`)
 )
 
 func prepare() error {
@@ -117,7 +120,7 @@ func resolvePredefinedVars(str string) string {
 		}
 
 		// move vars
-		if moveMatch := moveVarRegex.FindStringSubmatch(str); moveMatch != nil {
+		if moveMatch := moveVarRegex.FindStringSubmatch(varName); moveMatch != nil {
 			direction, offset := moveMatch[1], moveMatch[2]
 
 			if directionLetter, ok := moveVars[direction]; ok {
@@ -158,7 +161,7 @@ func prepareLogo() error {
 }
 
 func visibleRowLen(row string) int {
-	cleanRow := ansiEscapeRegex.ReplaceAllString(row, "")
+	cleanRow := escapeRegex.ReplaceAllString(row, "")
 	return len(cleanRow)
 }
 
@@ -268,22 +271,71 @@ func renderLogo() {
 	os.Stdout.WriteString(logoJoined + seqReset)
 }
 
+var pattern = regexp.MustCompile(`\x1b\[(\d+)([AB])|([^\x1b]+)|(\x1b\[[0-9;]*m)`)
+
+func countStrOffset(str string, startOffset int) (int, int) {
+	currOffset, maxOffset := startOffset, 0
+
+	for _, match := range pattern.FindAllStringSubmatch(str, -1) {
+		if match[1] != "" {
+			// TODO: handle
+			n, _ := strconv.Atoi(match[1])
+			if match[2] == "B" {
+				currOffset += n
+			} else if match[2] == "A" {
+				currOffset -= n
+			}
+		} else if match[3] != "" {
+			if currOffset > 0 {
+				maxOffset = max(maxOffset, currOffset)
+			}
+		}
+	}
+
+	return currOffset, maxOffset
+}
+
+func countModsOffset() int {
+	var maxOffset, currOffset int
+
+	for _, mod := range flags.Config.Modules {
+		str := flags.Config.LogoSeparator + mod.Title + flags.Config.ModuleSeparator + mod.Arg
+
+		var offset int
+		offset, currOffset = countStrOffset(str, currOffset)
+
+		maxOffset = max(maxOffset, offset)
+		currOffset++
+	}
+
+	return maxOffset
+}
+
+func countLogoOffset() int {
+	return len(entities.LogosMap[flags.Config.LogoName].Logo)
+}
+
 func render() {
+	modsOffset := countModsOffset()
+	logoOffset := countLogoOffset()
+
+	maxOffset := max(logoOffset, modsOffset)
+	os.Stdout.WriteString(strings.Repeat("\n", maxOffset))
+
+	os.Stdout.WriteString(seqStart + strconv.Itoa(maxOffset) + "A")
+
 	renderLogo()
 
-	// TODO: DELETE ALL THIS CRAP AFTER A PROPER BUFFER FILLER IS DONE
-	logoHeight := len(entities.LogosMap[flags.Config.LogoName].Logo)
-	os.Stdout.WriteString(seqStart + strconv.Itoa(logoHeight) + "A")
+	os.Stdout.WriteString(seqStart + strconv.Itoa(logoOffset) + "A")
 
 	for _, module := range flags.Config.Modules {
 		renderModule(module)
 	}
 
-	modulesNum := len(flags.Config.Modules)
-	offset := logoHeight - modulesNum + len(flags.Config.LogoSeparator)
-	os.Stdout.WriteString(seqStart + strconv.Itoa(offset) + "B")
+	os.Stdout.WriteString(seqStart + strconv.Itoa(modsOffset) + "A")
 
-	os.Stdout.WriteString("\n\n")
+	os.Stdout.WriteString(seqStart + strconv.Itoa(maxOffset) + "B")
+	os.Stdout.WriteString("\n")
 }
 
 func PrepareAndRender() {
