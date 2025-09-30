@@ -33,6 +33,7 @@ func Parse() {
 
 var defaultArgs = []Module{
 	{Arg: "${" + entities.OSName + "}"},
+	{Arg: "${" + entities.HostName + "}"},
 	{Arg: "${" + entities.KernelName + "}"},
 	{Arg: "${" + entities.TerminalName + "}"},
 	{Arg: "${" + entities.UptimeName + "}"},

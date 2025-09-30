@@ -3,7 +3,6 @@ package entities
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -49,6 +48,22 @@ func getOSReleaseInfo(prefix string) (string, error) {
 	if err := scanner.Err(); err != nil {
 		return "", err
 	}
+
+	return res, nil
+}
+
+func getHost() (string, error) {
+	host, err := os.ReadFile("/sys/class/dmi/id/product_name")
+	if err != nil {
+		return "", err
+	}
+
+	ver, err := os.ReadFile("/sys/class/dmi/id/product_version")
+	if err != nil {
+		return "", err
+	}
+
+	res := strings.TrimSpace(string(host)) + " (" + strings.TrimSpace(string(ver)) + ")"
 
 	return res, nil
 }
@@ -193,7 +208,6 @@ func getCPU() (string, error) {
 	for scanner.Scan() {
 		strs := strings.Split(scanner.Text(), ":")
 
-		fmt.Println(strings.TrimSpace(strs[0]))
 		if strings.TrimSpace(strs[0]) == "model name" {
 			res = strings.TrimSpace(strs[1])
 		}

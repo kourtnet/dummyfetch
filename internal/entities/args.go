@@ -9,6 +9,7 @@ type Arg struct {
 
 const (
 	OSName        = "os"
+	HostName      = "host"
 	KernelName    = "kernel"
 	ShellName     = "shell"
 	TerminalName  = "terminal"
@@ -26,6 +27,11 @@ var ArgsMap = map[string]Arg{
 	OSName: {
 		DefaultTitle: "OS",
 		Command:      getPrettyDistro,
+	},
+
+	HostName: {
+		DefaultTitle: "Host",
+		Command:      getHost,
 	},
 
 	KernelName: {
