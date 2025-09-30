@@ -12,6 +12,7 @@ const (
 	HostName      = "host"
 	KernelName    = "kernel"
 	ShellName     = "shell"
+	WMName        = "wm"
 	TerminalName  = "terminal"
 	UptimeName    = "uptime"
 	PackagesName  = "packages"
@@ -43,6 +44,11 @@ var ArgsMap = map[string]Arg{
 	ShellName: {
 		DefaultTitle: "Shell",
 		Command:      getShell,
+	},
+
+	WMName: {
+		DefaultTitle: "WM",
+		Command:      getWM,
 	},
 
 	TerminalName: {

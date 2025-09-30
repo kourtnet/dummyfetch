@@ -88,6 +88,30 @@ func getShell() (string, error) {
 	return shell, nil
 }
 
+func getWM() (string, error) {
+	WMName := os.Getenv("XDG_CURRENT_DESKTOP")
+	WMType := os.Getenv("XDG_SESSION_TYPE")
+
+	WMTypeRunes := []rune(WMType)
+
+	WMType = strings.ToUpper(string(WMTypeRunes[0])) + string(WMTypeRunes[1:])
+
+	WMLower := strings.ToLower(WMName)
+
+	getVer := exec.Command(WMLower, "--version")
+
+	output, err := getVer.Output()
+	if err != nil {
+		return "", err
+	}
+
+	version := string(bytes.Fields(output)[1])
+
+	res := WMName + " " + version + " (" + WMType + ")"
+
+	return res, nil
+}
+
 func getTerminal() (string, error) {
 	term := os.Getenv("TERM")
 	term = term[strings.Index(term, "-")+1:]
