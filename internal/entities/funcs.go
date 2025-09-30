@@ -2,8 +2,10 @@ package entities
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -87,8 +89,21 @@ func getShell() (string, error) {
 }
 
 func getTerminal() (string, error) {
-	term := getEnv("TERM")
-	return term, nil
+	term := os.Getenv("TERM")
+	term = term[strings.Index(term, "-")+1:]
+
+	getVer := exec.Command(term, "--version")
+
+	output, err := getVer.Output()
+	if err != nil {
+		return "", err
+	}
+
+	version := string(bytes.Fields(output)[1])
+
+	res := term + " " + version
+
+	return res, nil
 }
 
 func getUptime() (string, error) {
