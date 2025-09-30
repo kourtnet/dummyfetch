@@ -37,6 +37,7 @@ var defaultArgs = []Module{
 	{Arg: "${" + entities.KernelName + "}"},
 	{Arg: "${" + entities.TerminalName + "}"},
 	{Arg: "${" + entities.UptimeName + "}"},
+	{Arg: "${" + entities.PackagesName + "}"},
 	{Arg: "${" + entities.MemoryName + "}"},
 	{Arg: "${" + entities.CPUName + "}"},
 }

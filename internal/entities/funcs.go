@@ -149,6 +149,25 @@ func getUptime() (string, error) {
 	return strings.TrimSuffix(res, ", "), nil
 }
 
+// WARNING: works only with pacman (I use Arch, btw)
+func getPackages() (string, error) {
+	entries, err := os.ReadDir("/var/lib/pacman/local/")
+	if err != nil {
+		return "", err
+	}
+
+	dirsNum := 0
+	for _, entry := range entries {
+		if entry.IsDir() {
+			dirsNum++
+		}
+	}
+
+	res := strconv.Itoa(dirsNum) + " (pacman)"
+
+	return res, nil
+}
+
 func getMemory() (string, error) {
 	file, err := open("/proc/meminfo")
 	if err != nil {
