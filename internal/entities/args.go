@@ -18,6 +18,7 @@ const (
 	PackagesName  = "packages"
 	MemoryName    = "memory"
 	CPUName       = "cpu"
+	LocaleName    = "locale"
 	PaletteBgName = "palette_bg"
 	PaletteFgName = "palette_fg"
 
@@ -74,6 +75,11 @@ var ArgsMap = map[string]Arg{
 	CPUName: {
 		DefaultTitle: "CPU",
 		Command:      getCPU,
+	},
+
+	LocaleName: {
+		DefaultTitle: "Locale",
+		Command:      getLocale,
 	},
 
 	PaletteBgName: {

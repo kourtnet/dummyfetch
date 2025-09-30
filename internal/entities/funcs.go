@@ -278,6 +278,11 @@ func getCPU() (string, error) {
 	return res, nil
 }
 
+func getLocale() (string, error) {
+	locale := os.Getenv("LANG")
+	return locale, nil
+}
+
 func getPaletteBg() (string, error) {
 	output := "\033[2D\033[40m   \033[41m   \033[42m   \033[43m   \033[44m   \033[45m   \033[46m   \033[47m   \033[0m"
 	return output, nil
